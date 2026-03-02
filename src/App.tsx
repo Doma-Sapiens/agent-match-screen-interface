@@ -766,7 +766,7 @@ export default function App() {
         <TasksViewV3
           onBack={() => setCurrentView("menu")}
           onOpenChat={handleOpenChat}
-          hideLeftNavigation
+          hideAllTasksNavigation
           hidePotentialPairs
         />
       </div>

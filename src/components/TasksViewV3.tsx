@@ -50,7 +50,7 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 interface TasksViewV3Props {
   onBack?: () => void;
   onOpenChat?: (task: Task, action?: string) => void;
-  hideLeftNavigation?: boolean;
+  hideAllTasksNavigation?: boolean;
   hidePotentialPairs?: boolean;
 }
 
@@ -245,7 +245,7 @@ interface Task {
 export function TasksViewV3({
   onBack,
   onOpenChat,
-  hideLeftNavigation,
+  hideAllTasksNavigation,
   hidePotentialPairs,
 }: TasksViewV3Props) {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -886,378 +886,380 @@ export function TasksViewV3({
       {/* Основной контент - двухколоночный layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Левая панель - навигация */}
-        {!hideLeftNavigation && (
-          <div className="w-[280px] bg-white border-r border-gray-200 flex flex-col overflow-y-auto">
-            {/* Раздел "Все задачи" */}
-            <div className="border-b border-gray-200">
-              <div className="p-4 pb-2">
-                <h3 className="text-gray-900 mb-3">Все задачи</h3>
-              </div>
+        <div className="w-[280px] bg-white border-r border-gray-200 flex flex-col overflow-y-auto">
+          {!hideAllTasksNavigation && (
+            <>
+              {/* Раздел "Все задачи" */}
+              <div className="border-b border-gray-200">
+                <div className="p-4 pb-2">
+                  <h3 className="text-gray-900 mb-3">Все задачи</h3>
+                </div>
 
-              <div className="px-2 pb-4 space-y-1">
-                <button
-                  onClick={() => setStatusFilter("all")}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                    statusFilter === "all"
-                      ? "bg-[#EAF4FF] text-[#2D9CDB]"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <span className="font-medium">Новые</span>
-                  <span
-                    className={`text-[12px] px-2 py-0.5 rounded-full ${
-                      statusFilter === "all"
-                        ? "bg-[#2D9CDB] text-white"
-                        : "bg-gray-200 text-gray-600"
-                    }`}
-                  >
-                    {getStatusCount("all")}
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setStatusFilter("today")}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                    statusFilter === "today"
-                      ? "bg-[#EAF4FF] text-[#2D9CDB]"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <span className="font-medium">На сегодня</span>
-                  <span
-                    className={`text-[12px] px-2 py-0.5 rounded-full ${
-                      statusFilter === "today"
-                        ? "bg-[#2D9CDB] text-white"
-                        : "bg-gray-200 text-gray-600"
-                    }`}
-                  >
-                    {getStatusCount("today")}
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setStatusFilter("tomorrow")}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                    statusFilter === "tomorrow"
-                      ? "bg-[#EAF4FF] text-[#2D9CDB]"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <span className="font-medium">На завтра</span>
-                  <span
-                    className={`text-[12px] px-2 py-0.5 rounded-full ${
-                      statusFilter === "tomorrow"
-                        ? "bg-[#2D9CDB] text-white"
-                        : "bg-gray-200 text-gray-600"
-                    }`}
-                  >
-                    0
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setStatusFilter("week")}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                    statusFilter === "week"
-                      ? "bg-[#EAF4FF] text-[#2D9CDB]"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <span className="font-medium">На неделю</span>
-                  <span
-                    className={`text-[12px] px-2 py-0.5 rounded-full ${
-                      statusFilter === "week"
-                        ? "bg-[#2D9CDB] text-white"
-                        : "bg-gray-200 text-gray-600"
-                    }`}
-                  >
-                    0
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setStatusFilter("completed")}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                    statusFilter === "completed"
-                      ? "bg-[#EAF4FF] text-[#2D9CDB]"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <span className="font-medium">Выполнено</span>
-                  <span
-                    className={`text-[12px] px-2 py-0.5 rounded-full ${
-                      statusFilter === "completed"
-                        ? "bg-[#2D9CDB] text-white"
-                        : "bg-gray-200 text-gray-600"
-                    }`}
-                  >
-                    {getStatusCount("completed")}
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setStatusFilter("overdue")}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                    statusFilter === "overdue"
-                      ? "bg-[#EAF4FF] text-[#2D9CDB]"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <span className="font-medium">Просроченные</span>
-                  <span
-                    className={`text-[12px] px-2 py-0.5 rounded-full ${
-                      statusFilter === "overdue"
-                        ? "bg-[#2D9CDB] text-white"
-                        : "bg-gray-200 text-gray-600"
-                    }`}
-                  >
-                    0
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {/* Раздел "МЛС" */}
-            <div>
-              <div className="p-4 pb-2">
-                <button
-                  onClick={() => setIsMlsExpanded(!isMlsExpanded)}
-                  className="flex items-center justify-between w-full mb-3 hover:bg-gray-50 rounded-lg px-2 py-1 -mx-2 transition-colors"
-                >
-                  <h3 className="text-gray-900">МЛС</h3>
-                  {isMlsExpanded ? (
-                    <ChevronDown className="w-4 h-4 text-gray-600" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-gray-600" />
-                  )}
-                </button>
-
-                {/* Переключатель Входящие/Исходящие */}
-                {isMlsExpanded && (
-                  <div className="flex gap-1 p-1 bg-gray-100 rounded-lg mb-3">
-                    <button
-                      onClick={() => setMlsDirection("incoming")}
-                      className={`flex-1 px-3 py-1.5 rounded-md text-[13px] transition-colors ${
-                        mlsDirection === "incoming"
-                          ? "bg-white text-gray-900 shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
-                      }`}
-                    >
-                      Входящие
-                    </button>
-                    <button
-                      onClick={() => setMlsDirection("outgoing")}
-                      className={`flex-1 px-3 py-1.5 rounded-md text-[13px] transition-colors ${
-                        mlsDirection === "outgoing"
-                          ? "bg-white text-gray-900 shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
-                      }`}
-                    >
-                      Исходящие
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {isMlsExpanded && (
                 <div className="px-2 pb-4 space-y-1">
                   <button
-                    onClick={() => setStatusFilter("mls-all")}
+                    onClick={() => setStatusFilter("all")}
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                      statusFilter === "mls-all"
+                      statusFilter === "all"
                         ? "bg-[#EAF4FF] text-[#2D9CDB]"
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <Archive className="w-4 h-4" />
-                      <span className="font-medium">Все</span>
-                    </div>
+                    <span className="font-medium">Новые</span>
                     <span
                       className={`text-[12px] px-2 py-0.5 rounded-full ${
-                        statusFilter === "mls-all"
+                        statusFilter === "all"
                           ? "bg-[#2D9CDB] text-white"
                           : "bg-gray-200 text-gray-600"
                       }`}
                     >
-                      {getStatusCount("mls-all")}
+                      {getStatusCount("all")}
                     </span>
                   </button>
 
                   <button
-                    onClick={() => setStatusFilter("mls-new-chat")}
+                    onClick={() => setStatusFilter("today")}
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                      statusFilter === "mls-new-chat"
+                      statusFilter === "today"
                         ? "bg-[#EAF4FF] text-[#2D9CDB]"
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <MessageCircleMore className="w-4 h-4" />
-                      <span className="font-medium">Новый чат</span>
-                    </div>
+                    <span className="font-medium">На сегодня</span>
                     <span
                       className={`text-[12px] px-2 py-0.5 rounded-full ${
-                        statusFilter === "mls-new-chat"
+                        statusFilter === "today"
                           ? "bg-[#2D9CDB] text-white"
                           : "bg-gray-200 text-gray-600"
                       }`}
                     >
-                      {getStatusCount("mls-new-chat")}
+                      {getStatusCount("today")}
                     </span>
                   </button>
 
                   <button
-                    onClick={() => setStatusFilter("mls-terms")}
+                    onClick={() => setStatusFilter("tomorrow")}
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                      statusFilter === "mls-terms"
+                      statusFilter === "tomorrow"
                         ? "bg-[#EAF4FF] text-[#2D9CDB]"
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <Handshake className="w-4 h-4" />
-                      <span className="font-medium">Фиксация условий</span>
-                    </div>
+                    <span className="font-medium">На завтра</span>
                     <span
                       className={`text-[12px] px-2 py-0.5 rounded-full ${
-                        statusFilter === "mls-terms"
+                        statusFilter === "tomorrow"
                           ? "bg-[#2D9CDB] text-white"
                           : "bg-gray-200 text-gray-600"
                       }`}
                     >
-                      {getStatusCount("mls-terms")}
+                      0
                     </span>
                   </button>
 
                   <button
-                    onClick={() => setStatusFilter("mls-showing")}
+                    onClick={() => setStatusFilter("week")}
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                      statusFilter === "mls-showing"
+                      statusFilter === "week"
                         ? "bg-[#EAF4FF] text-[#2D9CDB]"
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      <span className="font-medium">Назначение показа</span>
-                    </div>
+                    <span className="font-medium">На неделю</span>
                     <span
                       className={`text-[12px] px-2 py-0.5 rounded-full ${
-                        statusFilter === "mls-showing"
+                        statusFilter === "week"
                           ? "bg-[#2D9CDB] text-white"
                           : "bg-gray-200 text-gray-600"
                       }`}
                     >
-                      {getStatusCount("mls-showing")}
+                      0
                     </span>
                   </button>
 
                   <button
-                    onClick={() => setStatusFilter("mls-deposit")}
+                    onClick={() => setStatusFilter("completed")}
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                      statusFilter === "mls-deposit"
+                      statusFilter === "completed"
                         ? "bg-[#EAF4FF] text-[#2D9CDB]"
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <CircleDollarSign className="w-4 h-4" />
-                      <span className="font-medium">
-                        Готов вносить аванс/задаток
-                      </span>
-                    </div>
+                    <span className="font-medium">Выполнено</span>
                     <span
                       className={`text-[12px] px-2 py-0.5 rounded-full ${
-                        statusFilter === "mls-deposit"
+                        statusFilter === "completed"
                           ? "bg-[#2D9CDB] text-white"
                           : "bg-gray-200 text-gray-600"
                       }`}
                     >
-                      {getStatusCount("mls-deposit")}
+                      {getStatusCount("completed")}
                     </span>
                   </button>
 
                   <button
-                    onClick={() => setStatusFilter("mls-closed")}
+                    onClick={() => setStatusFilter("overdue")}
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                      statusFilter === "mls-closed"
+                      statusFilter === "overdue"
                         ? "bg-[#EAF4FF] text-[#2D9CDB]"
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <FileCheck className="w-4 h-4" />
-                      <span className="font-medium">Сделка закрыта</span>
-                    </div>
+                    <span className="font-medium">Просроченные</span>
                     <span
                       className={`text-[12px] px-2 py-0.5 rounded-full ${
-                        statusFilter === "mls-closed"
+                        statusFilter === "overdue"
                           ? "bg-[#2D9CDB] text-white"
                           : "bg-gray-200 text-gray-600"
                       }`}
                     >
-                      {getStatusCount("mls-closed")}
+                      0
                     </span>
                   </button>
+                </div>
+              </div>
+            </>
+          )}
 
+          {/* Раздел "МЛС" */}
+          <div>
+            <div className="p-4 pb-2">
+              <button
+                onClick={() => setIsMlsExpanded(!isMlsExpanded)}
+                className="flex items-center justify-between w-full mb-3 hover:bg-gray-50 rounded-lg px-2 py-1 -mx-2 transition-colors"
+              >
+                <h3 className="text-gray-900">МЛС</h3>
+                {isMlsExpanded ? (
+                  <ChevronDown className="w-4 h-4 text-gray-600" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-gray-600" />
+                )}
+              </button>
+
+              {/* Переключатель Входящие/Исходящие */}
+              {isMlsExpanded && (
+                <div className="flex gap-1 p-1 bg-gray-100 rounded-lg mb-3">
                   <button
-                    onClick={() => setStatusFilter("mls-commission-received")}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
-                      statusFilter === "mls-commission-received"
-                        ? "bg-[#EAF4FF] text-[#2D9CDB]"
-                        : "text-gray-700 hover:bg-gray-50"
+                    onClick={() => setMlsDirection("incoming")}
+                    className={`flex-1 px-3 py-1.5 rounded-md text-[13px] transition-colors ${
+                      mlsDirection === "incoming"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4" />
-                      <span className="font-medium">КВ получена</span>
-                    </div>
-                    <span
-                      className={`text-[12px] px-2 py-0.5 rounded-full ${
-                        statusFilter === "mls-commission-received"
-                          ? "bg-[#2D9CDB] text-white"
-                          : "bg-gray-200 text-gray-600"
-                      }`}
-                    >
-                      {getStatusCount("mls-commission-received")}
-                    </span>
+                    Входящие
+                  </button>
+                  <button
+                    onClick={() => setMlsDirection("outgoing")}
+                    className={`flex-1 px-3 py-1.5 rounded-md text-[13px] transition-colors ${
+                      mlsDirection === "outgoing"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    Исходящие
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Раздел "Меняй и живи" */}
-            <div>
-              <div className="p-4 pb-2">
+            {isMlsExpanded && (
+              <div className="px-2 pb-4 space-y-1">
                 <button
-                  onClick={() => {
-                    /* пока без функционала */
-                  }}
-                  className="flex items-center justify-between w-full mb-3 hover:bg-gray-50 rounded-lg px-2 py-1 -mx-2 transition-colors"
+                  onClick={() => setStatusFilter("mls-all")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
+                    statusFilter === "mls-all"
+                      ? "bg-[#EAF4FF] text-[#2D9CDB]"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
                 >
-                  <h3 className="text-gray-900">Меняй и живи</h3>
-                  <ChevronRight className="w-4 h-4 text-gray-600" />
+                  <div className="flex items-center gap-2">
+                    <Archive className="w-4 h-4" />
+                    <span className="font-medium">Все</span>
+                  </div>
+                  <span
+                    className={`text-[12px] px-2 py-0.5 rounded-full ${
+                      statusFilter === "mls-all"
+                        ? "bg-[#2D9CDB] text-white"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {getStatusCount("mls-all")}
+                  </span>
                 </button>
-              </div>
-            </div>
 
-            {/* Раздел "Новостройки" */}
-            <div>
-              <div className="p-4 pb-2">
                 <button
-                  onClick={() => {
-                    /* пока без функционала */
-                  }}
-                  className="flex items-center justify-between w-full mb-3 hover:bg-gray-50 rounded-lg px-2 py-1 -mx-2 transition-colors"
+                  onClick={() => setStatusFilter("mls-new-chat")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
+                    statusFilter === "mls-new-chat"
+                      ? "bg-[#EAF4FF] text-[#2D9CDB]"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
                 >
-                  <h3 className="text-gray-900">Новостройки</h3>
-                  <ChevronRight className="w-4 h-4 text-gray-600" />
+                  <div className="flex items-center gap-2">
+                    <MessageCircleMore className="w-4 h-4" />
+                    <span className="font-medium">Новый чат</span>
+                  </div>
+                  <span
+                    className={`text-[12px] px-2 py-0.5 rounded-full ${
+                      statusFilter === "mls-new-chat"
+                        ? "bg-[#2D9CDB] text-white"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {getStatusCount("mls-new-chat")}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setStatusFilter("mls-terms")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
+                    statusFilter === "mls-terms"
+                      ? "bg-[#EAF4FF] text-[#2D9CDB]"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Handshake className="w-4 h-4" />
+                    <span className="font-medium">Фиксация условий</span>
+                  </div>
+                  <span
+                    className={`text-[12px] px-2 py-0.5 rounded-full ${
+                      statusFilter === "mls-terms"
+                        ? "bg-[#2D9CDB] text-white"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {getStatusCount("mls-terms")}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setStatusFilter("mls-showing")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
+                    statusFilter === "mls-showing"
+                      ? "bg-[#EAF4FF] text-[#2D9CDB]"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    <span className="font-medium">Назначение показа</span>
+                  </div>
+                  <span
+                    className={`text-[12px] px-2 py-0.5 rounded-full ${
+                      statusFilter === "mls-showing"
+                        ? "bg-[#2D9CDB] text-white"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {getStatusCount("mls-showing")}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setStatusFilter("mls-deposit")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
+                    statusFilter === "mls-deposit"
+                      ? "bg-[#EAF4FF] text-[#2D9CDB]"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <CircleDollarSign className="w-4 h-4" />
+                    <span className="font-medium">
+                      Готов вносить аванс/задаток
+                    </span>
+                  </div>
+                  <span
+                    className={`text-[12px] px-2 py-0.5 rounded-full ${
+                      statusFilter === "mls-deposit"
+                        ? "bg-[#2D9CDB] text-white"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {getStatusCount("mls-deposit")}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setStatusFilter("mls-closed")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
+                    statusFilter === "mls-closed"
+                      ? "bg-[#EAF4FF] text-[#2D9CDB]"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <FileCheck className="w-4 h-4" />
+                    <span className="font-medium">Сделка закрыта</span>
+                  </div>
+                  <span
+                    className={`text-[12px] px-2 py-0.5 rounded-full ${
+                      statusFilter === "mls-closed"
+                        ? "bg-[#2D9CDB] text-white"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {getStatusCount("mls-closed")}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setStatusFilter("mls-commission-received")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm ${
+                    statusFilter === "mls-commission-received"
+                      ? "bg-[#EAF4FF] text-[#2D9CDB]"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" />
+                    <span className="font-medium">КВ получена</span>
+                  </div>
+                  <span
+                    className={`text-[12px] px-2 py-0.5 rounded-full ${
+                      statusFilter === "mls-commission-received"
+                        ? "bg-[#2D9CDB] text-white"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {getStatusCount("mls-commission-received")}
+                  </span>
                 </button>
               </div>
+            )}
+          </div>
+
+          {/* Раздел "Меняй и живи" */}
+          <div>
+            <div className="p-4 pb-2">
+              <button
+                onClick={() => {
+                  /* пока без функционала */
+                }}
+                className="flex items-center justify-between w-full mb-3 hover:bg-gray-50 rounded-lg px-2 py-1 -mx-2 transition-colors"
+              >
+                <h3 className="text-gray-900">Меняй и живи</h3>
+                <ChevronRight className="w-4 h-4 text-gray-600" />
+              </button>
             </div>
           </div>
-        )}
+
+          {/* Раздел "Новостройки" */}
+          <div>
+            <div className="p-4 pb-2">
+              <button
+                onClick={() => {
+                  /* пока без функционала */
+                }}
+                className="flex items-center justify-between w-full mb-3 hover:bg-gray-50 rounded-lg px-2 py-1 -mx-2 transition-colors"
+              >
+                <h3 className="text-gray-900">Новостройки</h3>
+                <ChevronRight className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* Правая часть - список задач (стакан) */}
         <div className="flex-1 flex flex-col overflow-hidden">
