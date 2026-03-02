@@ -1,5 +1,3 @@
-import { Terminal } from "lucide-react";
-
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import logoImage from "figma:asset/d7257c975045ec854093aa1bf8867f5822817e34.png";
 
@@ -63,7 +61,11 @@ function MlsTerminalIcon() {
     <div className="relative size-[100px]">
       <div className="absolute bg-gradient-to-b from-[#111827] to-[#0B1220] left-0 rounded-[15px] size-[100px] top-0" />
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-        <Terminal className="w-8 h-8 text-white/90" />
+        <div className="h-7 w-10 rounded-md border border-white/70 bg-black/20 px-1 py-1">
+          <div className="text-[9px] font-semibold tracking-wide text-white/90">
+            &gt;_
+          </div>
+        </div>
         <div className="font-bold leading-[22px] text-[18px] text-center text-white">
           MLS
         </div>
