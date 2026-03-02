@@ -60,16 +60,9 @@ function MlsTerminalIcon() {
   return (
     <div className="relative size-[100px]">
       <div className="absolute bg-gradient-to-b from-[#111827] to-[#0B1220] left-0 rounded-[15px] size-[100px] top-0" />
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-        <div className="h-7 w-10 rounded-md border border-white/70 bg-black/20 px-1 py-1">
-          <div className="text-[9px] font-semibold tracking-wide text-white/90">
-            &gt;_
-          </div>
-        </div>
-        <div className="font-bold leading-[22px] text-[18px] text-center text-white">
-          MLS
-        </div>
-      </div>
+      <p className="absolute font-bold leading-[22px] left-[50px] text-[20px] text-center text-nowrap text-white top-[39px] translate-x-[-50%] whitespace-pre">
+        МЛС
+      </p>
     </div>
   );
 }
