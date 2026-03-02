@@ -512,12 +512,7 @@ export default function App() {
       <>
         <MainMenu onNavigate={handleNavigateFromMenu} />
 
-        {/* Модалка дефолтной комиссии */}
-        <DefaultCommissionModal
-          isOpen={showDefaultCommissionModal}
-          onClose={() => setShowDefaultCommissionModal(false)}
-          onSave={handleDefaultCommissionSave}
-        />
+        {/* DefaultCommissionModal временно скрыта по запросу */}
       </>
     );
   }
@@ -771,6 +766,8 @@ export default function App() {
         <TasksViewV3
           onBack={() => setCurrentView("menu")}
           onOpenChat={handleOpenChat}
+          hideLeftNavigation
+          hidePotentialPairs
         />
       </div>
     );

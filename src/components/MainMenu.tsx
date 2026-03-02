@@ -166,7 +166,7 @@ export function MainMenu({ onNavigate }: MainMenuProps) {
           {/* MLS Терминал */}
           <button
             onClick={() => onNavigate("mls-terminal")}
-            className="bg-white rounded-2xl p-8 border border-gray-200 hover:border-gray-400 hover:shadow-lg transition-all group flex flex-col items-center"
+            className="bg-white rounded-2xl p-8 border border-gray-200 hover:border-gray-400 hover:shadow-lg transition-all group flex flex-col items-center col-span-2 md:col-span-1"
           >
             <div className="mb-4 group-hover:scale-110 transition-transform">
               <MlsTerminalIcon />
