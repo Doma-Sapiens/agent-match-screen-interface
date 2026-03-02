@@ -776,7 +776,7 @@ export function TasksViewV3({
           </div>
           <div className="bg-[#318bff] box-border content-stretch flex gap-[10px] items-center justify-center px-[20px] py-[17px] relative shrink-0">
             <p className="font-semibold leading-[22px] relative shrink-0 text-[16px] text-nowrap text-white whitespace-pre">
-              Задачи
+              Работа по МЛС
             </p>
           </div>
         </div>
@@ -798,7 +798,7 @@ export function TasksViewV3({
           {/* Фильтр по типу */}
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="w-[220px] bg-white border-gray-200">
-              <SelectValue placeholder="Тип задачи" />
+              <SelectValue placeholder="Тип взаимодействия" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Все типы</SelectItem>
@@ -888,7 +888,7 @@ export function TasksViewV3({
               {/* Раздел "Все задачи" */}
               <div className="border-b border-gray-200">
                 <div className="p-4 pb-2">
-                  <h3 className="text-gray-900 mb-3">Все задачи</h3>
+                  <h3 className="text-gray-900 mb-3">Работа по МЛС</h3>
                 </div>
 
                 <div className="px-2 pb-4 space-y-1">
@@ -1211,7 +1211,7 @@ export function TasksViewV3({
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Заголовок списка */}
           <div className="px-6 py-4 bg-white border-b border-gray-200 flex items-baseline justify-between">
-            <h2 className="text-gray-900">Задачи ({filteredTasks.length})</h2>
+            <h2 className="text-gray-900">Работа по МЛС ({filteredTasks.length})</h2>
 
             {/* Блок потенциала пар */}
             {!hidePotentialPairs && (
@@ -1287,6 +1287,9 @@ export function TasksViewV3({
                                 <span className="text-sm text-gray-500">
                                   {getTaskTypeLabel(task.type)}
                                 </span>
+                                <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                                  {isOutgoing ? "Исходящее" : "Входящее"}
+                                </span>
                               </div>
                               <h3 className="text-gray-900">
                                 {task.description}
@@ -1309,27 +1312,38 @@ export function TasksViewV3({
                             )}
                           </div>
 
-                          {/* Агент и дата */}
-                          <div className="flex items-center gap-4 text-sm text-gray-600">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-200">
-                                <ImageWithFallback
-                                  src={task.agent.avatar}
-                                  alt={task.agent.name}
-                                  className="w-full h-full object-cover"
-                                />
+                          {/* Контрагент, дата и цена */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                            <div>
+                              <p className="text-[11px] text-gray-500 mb-1">
+                                Контрагент
+                              </p>
+                              <div className="flex items-center gap-2 text-gray-700">
+                                <div className="w-6 h-6 rounded-full overflow-hidden border border-gray-200">
+                                  <ImageWithFallback
+                                    src={task.agent.avatar}
+                                    alt={task.agent.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <span>{task.agent.name}</span>
+                                {task.agent.hasMedal && (
+                                  <Award className="w-3.5 h-3.5 text-blue-600" />
+                                )}
                               </div>
-                              <span>{task.agent.name}</span>
-                              {task.agent.hasMedal && (
-                                <Award className="w-3.5 h-3.5 text-blue-600" />
-                              )}
                             </div>
-                            <span>•</span>
-                            <span>{task.date}</span>
-                            <span>•</span>
-                            <span className="text-blue-600">
-                              {task.potential}
-                            </span>
+                            <div>
+                              <p className="text-[11px] text-gray-500 mb-1">
+                                Последнее действие
+                              </p>
+                              <p className="text-gray-700">{task.date}</p>
+                            </div>
+                            <div>
+                              <p className="text-[11px] text-gray-500 mb-1">
+                                Цена
+                              </p>
+                              <p className="text-blue-600">{task.potential}</p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1509,7 +1523,7 @@ export function TasksViewV3({
               {filteredTasks.length === 0 && (
                 <div className="text-center py-12 text-gray-500">
                   <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                  <p>Нет задач для отображения</p>
+                  <p>Нет взаимодействий для отображения</p>
                 </div>
               )}
             </div>
