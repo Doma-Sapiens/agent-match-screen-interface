@@ -58,9 +58,8 @@ function PairsIcon() {
 // Компонент иконки для MLS терминала (тёмный градиент)
 function MlsTerminalIcon() {
   return (
-    <div className="relative size-[100px]">
-      <div className="absolute bg-gradient-to-b from-[#111827] to-[#0B1220] left-0 rounded-[15px] size-[100px] top-0" />
-      <p className="absolute font-bold leading-[22px] left-[50px] text-[20px] text-center text-nowrap text-white top-[39px] translate-x-[-50%] whitespace-pre">
+    <div className="size-[100px] rounded-[15px] bg-gradient-to-b from-[#1E40AF] to-[#0F172A] flex items-center justify-center">
+      <p className="font-bold leading-[22px] text-[20px] text-center text-nowrap text-white whitespace-pre">
         МЛС
       </p>
     </div>
