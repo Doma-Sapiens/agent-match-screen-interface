@@ -426,9 +426,6 @@ export function TasksViewV3({
     if (action === "decline-terms") {
       updateTaskStatus(taskId, "rejected");
     }
-    if (action === "expire-terms") {
-      updateTaskStatus(taskId, "ignored", "Срок действия предложения истёк");
-    }
   };
 
   return (
@@ -701,14 +698,6 @@ export function TasksViewV3({
                                 onClick={() => handleTaskAction(task.id, "decline-terms")}
                               >
                                 Отклонить
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                                onClick={() => handleTaskAction(task.id, "expire-terms")}
-                              >
-                                Истечение срока
                               </Button>
                             </>
                           )}
