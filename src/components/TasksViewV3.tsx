@@ -376,7 +376,7 @@ export function TasksViewV3({
   const getStatusLabel = (status?: TaskStatus) => {
     if (!status) return "";
     const labels: Record<TaskStatus, string> = {
-      "awaiting-terms-approval": "Ожидает согласования условий",
+      "awaiting-terms-approval": "Ожидает решения",
       "terms-approved": "Условия согласованы",
       rejected: "Отклонено",
       ignored: "Проигнорировано",
@@ -387,7 +387,7 @@ export function TasksViewV3({
   const getStatusClassName = (status?: TaskStatus) => {
     if (!status) return "";
     const classes: Record<TaskStatus, string> = {
-      "awaiting-terms-approval": "bg-yellow-100 text-yellow-800",
+      "awaiting-terms-approval": "bg-sky-100 text-sky-800",
       "terms-approved": "bg-green-100 text-green-800",
       rejected: "bg-red-100 text-red-800",
       ignored: "bg-gray-200 text-gray-700",
@@ -714,7 +714,7 @@ export function TasksViewV3({
                                 Изменить условия
                               </Button>
                               <span className="text-[11px] text-amber-700">
-                                После нажатия статус вернется в "Ожидает согласования условий"
+                                После нажатия статус вернется в "Ожидает решения"
                               </span>
                             </>
                           )}
