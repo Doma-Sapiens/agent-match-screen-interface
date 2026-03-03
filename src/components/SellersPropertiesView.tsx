@@ -836,7 +836,7 @@ export function SellersPropertiesView({
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Выберите моего клиента</DialogTitle>
+            <DialogTitle>Выберите своего покупателя</DialogTitle>
             <DialogDescription>
               Это обязательный шаг перед формированием предложения комиссии.
             </DialogDescription>
