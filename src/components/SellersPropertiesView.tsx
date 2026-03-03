@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Search, Filter, Plus, MapPin, MessageCircle, MoreVertical, SlidersHorizontal, Calculator } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -82,11 +82,16 @@ interface CommissionProposal {
   propertyId: string;
   clientId: string;
   clientName: string;
-  commissionType: "% от суммы сделки" | "% от моей комиссии" | "Фикс";
-  commissionValue: string;
+  mySharePercent: number;
+  partnerSharePercent: number;
   message?: string;
-  status: "Ожидает ответа" | "Закрыто новым предложением";
+  eventType: "commission_proposed";
+  status:
+    | "Ожидает согласования условий"
+    | "Проигнорировано"
+    | "Закрыто новым предложением";
   createdAt: string;
+  expiresAt: string;
 }
 
 interface Discussion {
@@ -102,8 +107,7 @@ interface ProposalModalState {
   propertyId: string;
   clientId: string;
   clientName: string;
-  commissionType: "% от суммы сделки" | "% от моей комиссии" | "Фикс";
-  commissionValue: string;
+  myShareInput: string;
   message: string;
 }
 
@@ -292,8 +296,7 @@ export function SellersPropertiesView({
       propertyId,
       clientId,
       clientName,
-      commissionType: "% от суммы сделки",
-      commissionValue: "",
+      myShareInput: "",
       message: "",
     });
   };
@@ -357,15 +360,26 @@ export function SellersPropertiesView({
   const handleSubmitProposal = () => {
     if (!proposalModalState) return;
     const property = getPropertyById(proposalModalState.propertyId);
-    if (!property || !proposalModalState.commissionValue.trim()) return;
+    const myShare = Number(proposalModalState.myShareInput);
+    if (
+      !property ||
+      proposalModalState.myShareInput.trim() === "" ||
+      Number.isNaN(myShare) ||
+      myShare < 0 ||
+      myShare > 100
+    ) {
+      return;
+    }
+    const partnerShare = Number((100 - myShare).toFixed(2));
 
     const pairKey = getPairKey(proposalModalState.propertyId, proposalModalState.clientId);
     const createdAt = new Date().toLocaleString("ru-RU");
+    const expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
     const chatId = `seller-commission-${pairKey}`;
 
     setProposals((prev) => {
       const closedPrevious = prev.map((proposal) =>
-        proposal.pairKey === pairKey && proposal.status === "Ожидает ответа"
+        proposal.pairKey === pairKey && proposal.status === "Ожидает согласования условий"
           ? { ...proposal, status: "Закрыто новым предложением" as const }
           : proposal,
       );
@@ -378,11 +392,13 @@ export function SellersPropertiesView({
           propertyId: proposalModalState.propertyId,
           clientId: proposalModalState.clientId,
           clientName: proposalModalState.clientName,
-          commissionType: proposalModalState.commissionType,
-          commissionValue: proposalModalState.commissionValue.trim(),
+          mySharePercent: Number(myShare.toFixed(2)),
+          partnerSharePercent: partnerShare,
           message: proposalModalState.message.trim() || undefined,
-          status: "Ожидает ответа",
+          eventType: "commission_proposed",
+          status: "Ожидает согласования условий",
           createdAt,
+          expiresAt,
         },
       ];
     });
@@ -415,8 +431,26 @@ export function SellersPropertiesView({
 
   const hasActiveProposal = (propertyId: string) =>
     proposals.some(
-      (proposal) => proposal.propertyId === propertyId && proposal.status === "Ожидает ответа",
+      (proposal) =>
+        proposal.propertyId === propertyId &&
+        proposal.status === "Ожидает согласования условий",
     );
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = Date.now();
+      setProposals((prev) =>
+        prev.map((proposal) => {
+          if (proposal.status !== "Ожидает согласования условий") return proposal;
+          const expiresAtMs = new Date(proposal.expiresAt).getTime();
+          if (Number.isNaN(expiresAtMs) || expiresAtMs > now) return proposal;
+          return { ...proposal, status: "Проигнорировано" };
+        }),
+      );
+    }, 30000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] flex flex-col">
@@ -783,7 +817,9 @@ export function SellersPropertiesView({
                   )}
                   {hasActiveProposal(property.id) && (
                     <div className="bg-[#ecf7ff] border border-[#e5effc] rounded-[5px] px-[10px] py-[7px]">
-                      <p className="text-[#318bff] text-[13px]">Активное предложение: Ожидает ответа</p>
+                      <p className="text-[#318bff] text-[13px]">
+                        Активное предложение: Ожидает согласования условий
+                      </p>
                     </div>
                   )}
 
@@ -941,10 +977,33 @@ export function SellersPropertiesView({
               {(() => {
                 const property = getPropertyById(proposalModalState.propertyId);
                 if (!property) return null;
+                const myShareRaw = proposalModalState.myShareInput.trim();
+                const myShareValue =
+                  myShareRaw === "" ? NaN : Number(proposalModalState.myShareInput);
+                const isMyShareValid =
+                  !Number.isNaN(myShareValue) && myShareValue >= 0 && myShareValue <= 100;
+                const partnerShareValue = isMyShareValid
+                  ? Number((100 - myShareValue).toFixed(2))
+                  : null;
                 return (
                   <>
+                    <div className="rounded-md border border-gray-200 bg-gray-50 p-3 space-y-1">
+                      <p className="text-sm text-gray-900">
+                        <span className="text-gray-500">Встречный агент:</span>{" "}
+                        {property.partnerAgentName}
+                      </p>
+                      <p className="text-sm text-gray-900">
+                        <span className="text-gray-500">Клиент:</span>{" "}
+                        {proposalModalState.clientName}
+                      </p>
+                      <p className="text-sm text-gray-900">
+                        <span className="text-gray-500">Объект:</span>{" "}
+                        {property.propertyType}, {property.location}
+                      </p>
+                    </div>
+
                     <div className="space-y-3">
-                      <h4 className="text-sm text-gray-700">Информация</h4>
+                      <h4 className="text-sm text-gray-700">Текущие условия сторон</h4>
                       <div className="rounded-md border border-gray-200 p-3 space-y-2">
                         <p className="text-sm text-gray-900">
                           <span className="text-gray-500">Мой объект:</span> {property.location}
@@ -972,56 +1031,58 @@ export function SellersPropertiesView({
                           <p className="text-sm text-gray-900">
                             Готов делиться: {property.partnerCommissionReady || "Не указано"}
                           </p>
-                          <p className="text-sm text-gray-900">
-                            Размер и тип:{" "}
-                            {property.partnerCommissionValue && property.partnerCommissionType
-                              ? `${property.partnerCommissionValue} (${property.partnerCommissionType})`
-                              : "Не указано"}
-                          </p>
+                          {property.partnerCommissionValue && property.partnerCommissionType ? (
+                            <p className="text-sm text-gray-900">
+                              Размер и тип: {`${property.partnerCommissionValue} (${property.partnerCommissionType})`}
+                            </p>
+                          ) : (
+                            <p className="text-sm text-gray-900">
+                              Условия деления комиссии не указаны
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-3">
-                      <h4 className="text-sm text-gray-700">Мое предложение</h4>
+                      <h4 className="text-sm text-gray-700">
+                        Вы предлагаете распределение комиссии
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div className="space-y-2">
-                          <Label>Тип комиссии</Label>
-                          <select
-                            value={proposalModalState.commissionType}
+                          <Label>Ваша доля, %</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={proposalModalState.myShareInput}
                             onChange={(e) =>
                               setProposalModalState((prev) =>
                                 prev
                                   ? {
                                       ...prev,
-                                      commissionType: e.target.value as ProposalModalState["commissionType"],
+                                      myShareInput: e.target.value,
                                     }
                                   : prev,
                               )
                             }
-                            className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
-                          >
-                            <option>% от суммы сделки</option>
-                            <option>% от моей комиссии</option>
-                            <option>Фикс</option>
-                          </select>
+                            placeholder="0-100"
+                          />
+                          {myShareRaw !== "" && !isMyShareValid && (
+                            <p className="text-xs text-red-600">Укажите значение от 0 до 100</p>
+                          )}
                         </div>
                         <div className="space-y-2">
-                          <Label>Значение комиссии</Label>
+                          <Label>Доля встречного агента, %</Label>
                           <Input
-                            value={proposalModalState.commissionValue}
-                            onChange={(e) =>
-                              setProposalModalState((prev) =>
-                                prev ? { ...prev, commissionValue: e.target.value } : prev,
-                              )
-                            }
-                            placeholder="Например: 50"
+                            value={partnerShareValue === null ? "—" : `${partnerShareValue}`}
+                            readOnly
                           />
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Краткий текст сообщения (необязательно)</Label>
+                        <Label>Комментарий (необязательно)</Label>
                         <Textarea
                           value={proposalModalState.message}
                           onChange={(e) =>
@@ -1035,9 +1096,11 @@ export function SellersPropertiesView({
 
                       <div className="rounded-md bg-[#f5f9ff] border border-[#dce9ff] p-3">
                         <p className="text-sm text-[#2d5ea8]">
-                          {`Предлагаю распределить комиссию следующим образом: ${
-                            proposalModalState.commissionValue || "—"
-                          } (${proposalModalState.commissionType}).`}
+                          Вы предлагаете распределить комиссию следующим образом:
+                          <br />
+                          Вы — {isMyShareValid ? myShareValue : "—"}%
+                          <br />
+                          Встречный агент — {partnerShareValue === null ? "—" : partnerShareValue}%
                         </p>
                       </div>
                     </div>
@@ -1054,7 +1117,12 @@ export function SellersPropertiesView({
             <Button
               className="bg-[#1976D2] hover:bg-[#1565C0] text-white"
               onClick={handleSubmitProposal}
-              disabled={!proposalModalState?.commissionValue.trim()}
+              disabled={
+                !proposalModalState?.myShareInput.trim() ||
+                Number.isNaN(Number(proposalModalState.myShareInput)) ||
+                Number(proposalModalState.myShareInput) < 0 ||
+                Number(proposalModalState.myShareInput) > 100
+              }
             >
               Отправить предложение
             </Button>
