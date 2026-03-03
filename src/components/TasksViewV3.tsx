@@ -67,6 +67,10 @@ interface CommissionEvent {
   id: string;
   type: CommissionEventType;
   createdAt: string;
+  timestamp: string;
+  userId: string;
+  proposalId?: string;
+  systemText?: string;
   comment?: string;
   versionId?: string;
 }
@@ -112,7 +116,10 @@ interface TasksViewV3Props {
 
 interface TermsModalState {
   taskId: string;
+  proposalId: string;
+  statusAtOpen: TaskStatus;
   declineComment: string;
+  warning?: string;
 }
 
 interface ProposalModalState {
@@ -422,6 +429,7 @@ export function TasksViewV3({
   hideAllTasksNavigation,
   hidePotentialPairs,
 }: TasksViewV3Props) {
+  const currentUserId = "user-petr-ivanov";
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
   const [statusFilter, setStatusFilter] = useState("mls-all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -454,6 +462,12 @@ export function TasksViewV3({
     ? tasks.find((t) => t.id === proposalModal.taskId && t.type === "terms-fixing") || null
     : null;
   const activeTermsVersion = termsTask ? getActiveCommissionVersion(termsTask) : null;
+  const termsHistoryEntries = (termsTask?.details.commissionEvents || [])
+    .filter(
+      (event) =>
+        event.type === "commission_accepted" || event.type === "commission_declined",
+    )
+    .slice(-5);
 
   const setTask = (taskId: string, updater: (task: Task) => Task) => {
     setTasks((prev) => prev.map((task) => (task.id === taskId ? updater(task) : task)));
@@ -464,11 +478,17 @@ export function TasksViewV3({
     type: CommissionEventType,
     comment?: string,
     versionId?: string,
+    systemText?: string,
   ): Task => {
+    const now = new Date();
     return appendEvent(task, {
       id: makeId("evt"),
       type,
-      createdAt: formatDateTime(new Date()),
+      createdAt: formatDateTime(now),
+      timestamp: now.toISOString(),
+      userId: currentUserId,
+      proposalId: versionId,
+      systemText,
       comment,
       versionId,
     });
@@ -539,20 +559,49 @@ export function TasksViewV3({
   };
 
   const openTerms = (task: Task) => {
+    const active = getActiveCommissionVersion(task);
+    if (!active || !task.status) return;
     setTask(task.id, (current) =>
       logEvent(current, "terms_opened", undefined, current.details.activeCommissionVersionId),
     );
-    setTermsModal({ taskId: task.id, declineComment: "" });
+    setTermsModal({
+      taskId: task.id,
+      proposalId: active.id,
+      statusAtOpen: task.status,
+      declineComment: "",
+      warning: undefined,
+    });
   };
 
   const acceptTerms = () => {
-    if (!termsTask) return;
+    if (!termsTask || !termsModal) return;
+    const active = getActiveCommissionVersion(termsTask);
+    const isChanged =
+      !active ||
+      active.id !== termsModal.proposalId ||
+      termsTask.status !== termsModal.statusAtOpen;
+    if (isChanged) {
+      setTermsModal((prev) =>
+        prev
+          ? { ...prev, warning: "Условия были обновлены. Проверьте актуальную версию." }
+          : prev,
+      );
+      return;
+    }
+    const expires = parseDateTime(active.expiresAt);
+    if (expires && expires.getTime() <= Date.now()) {
+      setTermsModal((prev) =>
+        prev ? { ...prev, warning: "Срок действия предложения истек. Обновите условия." } : prev,
+      );
+      return;
+    }
     setTask(termsTask.id, (current) => {
       const withEvent = logEvent(
         current,
         "commission_accepted",
         undefined,
         current.details.activeCommissionVersionId,
+        "Предложение комиссии принято",
       );
       return { ...withEvent, status: "terms-approved", statusHint: undefined };
     });
@@ -561,6 +610,26 @@ export function TasksViewV3({
 
   const declineTerms = () => {
     if (!termsTask || !termsModal) return;
+    const active = getActiveCommissionVersion(termsTask);
+    const isChanged =
+      !active ||
+      active.id !== termsModal.proposalId ||
+      termsTask.status !== termsModal.statusAtOpen;
+    if (isChanged) {
+      setTermsModal((prev) =>
+        prev
+          ? { ...prev, warning: "Условия были обновлены. Проверьте актуальную версию." }
+          : prev,
+      );
+      return;
+    }
+    const expires = parseDateTime(active.expiresAt);
+    if (expires && expires.getTime() <= Date.now()) {
+      setTermsModal((prev) =>
+        prev ? { ...prev, warning: "Срок действия предложения истек. Обновите условия." } : prev,
+      );
+      return;
+    }
     const comment = termsModal.declineComment.trim();
     setTask(termsTask.id, (current) => {
       const withEvent = logEvent(
@@ -568,6 +637,7 @@ export function TasksViewV3({
         "commission_declined",
         comment || undefined,
         current.details.activeCommissionVersionId,
+        "Предложение комиссии отклонено",
       );
       return { ...withEvent, status: "rejected", statusHint: undefined };
     });
@@ -643,6 +713,10 @@ export function TasksViewV3({
             id: makeId("evt"),
             type: "commission_ignored",
             createdAt: formatDateTime(new Date()),
+            timestamp: new Date().toISOString(),
+            userId: "system",
+            proposalId: activeVersion.id,
+            systemText: "Предложение комиссии проигнорировано",
             versionId: activeVersion.id,
           });
           return {
@@ -958,6 +1032,28 @@ export function TasksViewV3({
                 Комментарий, если введен, сохраняется в истории без дополнительных уведомлений.
               </p>
             </div>
+            {termsModal?.warning && (
+              <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                {termsModal.warning}
+              </div>
+            )}
+            {termsHistoryEntries.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm text-gray-700">Системные записи истории</p>
+                <div className="space-y-2">
+                  {termsHistoryEntries.map((event) => (
+                    <div
+                      key={event.id}
+                      className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-[12px] text-gray-700"
+                    >
+                      <p>{event.systemText || event.type}</p>
+                      {event.comment && <p className="mt-1 text-gray-600">Комментарий: {event.comment}</p>}
+                      <p className="mt-1 text-gray-500">{event.createdAt}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setTermsModal(null)}>
