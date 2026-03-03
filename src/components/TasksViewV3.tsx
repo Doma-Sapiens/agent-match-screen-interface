@@ -27,6 +27,15 @@ import {
 } from "./ui/tooltip";
 import { Badge } from "./ui/badge";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import { Textarea } from "./ui/textarea";
 
 type TaskType = "new-chat" | "terms-fixing";
 type TaskDirection = "incoming" | "outgoing";
@@ -62,7 +71,22 @@ interface Task {
       budget: string;
     };
     proposal?: string;
+    commissionTerms?: {
+      percentage: string;
+      scheme: string;
+      comment: string;
+      expiresAt: string;
+    };
   };
+}
+
+type CommissionEventType = "commission_accepted" | "commission_declined";
+
+interface CommissionEvent {
+  taskId: string;
+  type: CommissionEventType;
+  comment?: string;
+  createdAt: string;
 }
 
 interface TasksViewV3Props {
@@ -184,6 +208,76 @@ function IconBill() {
           </svg>
         </div>
       </div>
+      <Dialog open={!!selectedTermsTask} onOpenChange={(open) => !open && closeTermsModal()}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Условия комиссии</DialogTitle>
+            <DialogDescription>
+              {selectedTermsTask?.details.property?.address
+                ? `Объект: ${selectedTermsTask.details.property.address}`
+                : "Просмотр условий комиссии"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="rounded-md border border-gray-200 p-3">
+              <p className="text-[12px] text-gray-500 mb-1">Процент / схема</p>
+              <p className="text-sm text-gray-900">
+                {selectedTerms.percentage} - {selectedTerms.scheme}
+              </p>
+            </div>
+            <div className="rounded-md border border-gray-200 p-3">
+              <p className="text-[12px] text-gray-500 mb-1">Комментарий</p>
+              <p className="text-sm text-gray-900">{selectedTerms.comment}</p>
+            </div>
+            <div className="rounded-md border border-gray-200 p-3">
+              <p className="text-[12px] text-gray-500 mb-1">Срок действия</p>
+              <p className="text-sm text-gray-900">{selectedTerms.expiresAt}</p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm text-gray-700">Комментарий (необязательно)</p>
+              <Textarea
+                value={declineComment}
+                onChange={(e) => setDeclineComment(e.target.value)}
+                placeholder="Комментарий к отклонению (необязательно)"
+                className="min-h-[80px]"
+              />
+              <p className="text-[12px] text-gray-500">
+                Если комментарий введен, он сохраняется в истории без уведомления второй стороны.
+              </p>
+            </div>
+
+            {lastSelectedTaskEvent && (
+              <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-[12px] text-gray-600">
+                {lastSelectedTaskEvent.type}
+                {lastSelectedTaskEvent.comment
+                  ? ` (комментарий: ${lastSelectedTaskEvent.comment})`
+                  : ""}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={closeTermsModal}>
+              Закрыть
+            </Button>
+            <Button
+              variant="outline"
+              className="border-red-300 text-red-700 hover:bg-red-50"
+              onClick={handleDeclineTerms}
+            >
+              Отклонить
+            </Button>
+            <Button
+              className="bg-[#43A047] hover:bg-[#388E3C] text-white"
+              onClick={handleAcceptTerms}
+            >
+              Принять
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -329,6 +423,9 @@ export function TasksViewV3({
   const [statusFilter, setStatusFilter] = useState<string>("mls-all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [openedTermsTaskId, setOpenedTermsTaskId] = useState<string | null>(null);
+  const [declineComment, setDeclineComment] = useState("");
+  const [commissionEvents, setCommissionEvents] = useState<CommissionEvent[]>([]);
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -409,6 +506,38 @@ export function TasksViewV3({
     );
   };
 
+  const selectedTermsTask =
+    tasks.find((task) => task.id === openedTermsTaskId && task.type === "terms-fixing") ||
+    null;
+
+  const selectedTerms = selectedTermsTask?.details.commissionTerms || {
+    percentage: "50/50",
+    scheme: "Равное деление комиссии между агентами",
+    comment: "Комментарий к условиям отсутствует",
+    expiresAt: "14.10.2025, 23:59",
+  };
+
+  const saveCommissionEvent = (
+    taskId: string,
+    type: CommissionEventType,
+    comment?: string,
+  ) => {
+    setCommissionEvents((prev) => [
+      ...prev,
+      {
+        taskId,
+        type,
+        comment,
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+  };
+
+  const closeTermsModal = () => {
+    setOpenedTermsTaskId(null);
+    setDeclineComment("");
+  };
+
   const handleTaskAction = (taskId: string, action: string) => {
     const task = tasks.find((item) => item.id === taskId);
     if (!task) return;
@@ -416,17 +545,38 @@ export function TasksViewV3({
     if (action === "open-chat" && onOpenChat) {
       onOpenChat(task, action);
     }
-
-    if (action === "accept-terms") {
-      updateTaskStatus(taskId, "terms-approved");
-    }
-    if (action === "change-terms" || action === "send-new-offer" || action === "resend-offer") {
-      updateTaskStatus(taskId, "awaiting-terms-approval");
-    }
-    if (action === "decline-terms") {
-      updateTaskStatus(taskId, "rejected");
+    if (action === "open-terms" && task.type === "terms-fixing") {
+      setOpenedTermsTaskId(task.id);
+      setDeclineComment("");
     }
   };
+
+  const handleAcceptTerms = () => {
+    if (!selectedTermsTask) return;
+    saveCommissionEvent(selectedTermsTask.id, "commission_accepted");
+    updateTaskStatus(selectedTermsTask.id, "terms-approved");
+    closeTermsModal();
+  };
+
+  const handleDeclineTerms = () => {
+    if (!selectedTermsTask) return;
+    const cleanComment = declineComment.trim();
+    saveCommissionEvent(
+      selectedTermsTask.id,
+      "commission_declined",
+      cleanComment || undefined,
+    );
+    updateTaskStatus(selectedTermsTask.id, "rejected");
+    closeTermsModal();
+  };
+
+  const selectedTaskEvents = selectedTermsTask
+    ? commissionEvents.filter((event) => event.taskId === selectedTermsTask.id)
+    : [];
+  const lastSelectedTaskEvent =
+    selectedTaskEvents.length > 0
+      ? selectedTaskEvents[selectedTaskEvents.length - 1]
+      : null;
 
   return (
     <div className="bg-[#F9FAFB] min-h-screen flex flex-col">
@@ -680,64 +830,14 @@ export function TasksViewV3({
                         >
                           Открыть чат
                         </Button>
-
-                        {task.type === "terms-fixing" &&
-                          task.status === "awaiting-terms-approval" && (
-                            <>
-                              <Button
-                                size="sm"
-                                className="bg-[#43A047] hover:bg-[#388E3C] text-white"
-                                onClick={() => handleTaskAction(task.id, "accept-terms")}
-                              >
-                                Принять условия
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-red-300 text-red-700 hover:bg-red-50"
-                                onClick={() => handleTaskAction(task.id, "decline-terms")}
-                              >
-                                Отклонить
-                              </Button>
-                            </>
-                          )}
-
-                        {task.type === "terms-fixing" &&
-                          task.status === "terms-approved" && (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-amber-300 text-amber-800 hover:bg-amber-50"
-                                onClick={() => handleTaskAction(task.id, "change-terms")}
-                              >
-                                Изменить условия
-                              </Button>
-                              <span className="text-[11px] text-amber-700">
-                                После нажатия статус вернется в "Ожидает решения"
-                              </span>
-                            </>
-                          )}
-
-                        {task.type === "terms-fixing" && task.status === "rejected" && (
+                        {task.type === "terms-fixing" && (
                           <Button
                             size="sm"
                             variant="outline"
                             className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                            onClick={() => handleTaskAction(task.id, "send-new-offer")}
+                            onClick={() => handleTaskAction(task.id, "open-terms")}
                           >
-                            Отправить новое предложение
-                          </Button>
-                        )}
-
-                        {task.type === "terms-fixing" && task.status === "ignored" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                            onClick={() => handleTaskAction(task.id, "resend-offer")}
-                          >
-                            Отправить повторно
+                            Открыть условия
                           </Button>
                         )}
                       </div>
