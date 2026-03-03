@@ -594,6 +594,32 @@ export default function App() {
           setSelectedPropertyId(propertyId);
           setCurrentView("suitable-buyers");
         }}
+        onOpenCommissionChat={(payload) => {
+          setCurrentBuyer({
+            name: payload.clientName,
+            budget: "6 500 000 ₽",
+            district: "Центральный",
+          });
+          setCurrentProperty({
+            imageUrl: payload.propertyImage,
+            address: payload.propertyAddress,
+            price: payload.propertyPrice,
+          });
+          setCurrentAgent({
+            name: payload.agentName,
+            agency: payload.agentCompany,
+            avatar:
+              "https://images.unsplash.com/photo-1736939681295-bb2e6759dddc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBidXNpbmVzcyUyMHdvbWFuJTIwYXZhdGFyJTIwcG9ydHJhaXR8ZW58MXx8fHwxNzU5OTE3MTI1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+            phone: "+7 (812) 123-45-67",
+            telegram: "https://t.me/agent",
+            whatsApp: "https://wa.me/79123456789",
+          });
+          setProposedCommission(undefined);
+          setProposedMessage(undefined);
+          setTaskProposal(undefined);
+          setAutoAcceptTerms(false);
+          setActiveChat(payload.chatId);
+        }}
       />
     );
   }

@@ -5,6 +5,16 @@ import { Input } from "./ui/input";
 import { Checkbox } from "./ui/checkbox";
 import { Switch } from "./ui/switch";
 import { Badge } from "./ui/badge";
+import { Label } from "./ui/label";
+import { Textarea } from "./ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import {
   DropdownMenu,
@@ -17,6 +27,16 @@ import svgPaths from "../imports/svg-mic4nfy4kl";
 interface SellersPropertiesViewProps {
   onBack?: () => void;
   onBuyersClick?: (propertyId: string) => void;
+  onOpenCommissionChat?: (payload: {
+    chatId: string;
+    clientName: string;
+    propertyAddress: string;
+    propertyPrice: string;
+    propertyImage: string;
+    agentName: string;
+    agentCompany: string;
+  }) => void;
+  preselectedClientId?: string | null;
 }
 
 interface Property {
@@ -41,6 +61,62 @@ interface Property {
   pricePerMeter: string;
   floor: string;
   area: string;
+  myCommissionReady: "Да" | "Нет";
+  myCommissionValue: string;
+  myCommissionType: "% от суммы сделки" | "% от моей комиссии" | "Фикс";
+  partnerCommissionReady?: "Да" | "Нет";
+  partnerCommissionValue?: string;
+  partnerCommissionType?: "% от суммы сделки" | "% от моей комиссии" | "Фикс";
+  partnerAgentName: string;
+  partnerAgentCompany: string;
+}
+
+interface MyClient {
+  id: string;
+  name: string;
+}
+
+interface CommissionProposal {
+  id: string;
+  pairKey: string;
+  propertyId: string;
+  clientId: string;
+  clientName: string;
+  commissionType: "% от суммы сделки" | "% от моей комиссии" | "Фикс";
+  commissionValue: string;
+  message?: string;
+  status: "Ожидает ответа" | "Закрыто новым предложением";
+  createdAt: string;
+}
+
+interface Discussion {
+  pairKey: string;
+  propertyId: string;
+  clientId: string;
+  clientName: string;
+  chatId: string;
+  status: "active" | "closed";
+}
+
+interface ProposalModalState {
+  propertyId: string;
+  clientId: string;
+  clientName: string;
+  commissionType: "% от суммы сделки" | "% от моей комиссии" | "Фикс";
+  commissionValue: string;
+  message: string;
+}
+
+interface ClientSelectionState {
+  propertyId: string;
+  selectedClientId: string;
+}
+
+interface ExistingDiscussionState {
+  propertyId: string;
+  clientId: string;
+  clientName: string;
+  chatId: string;
 }
 
 // Компонент иконки стрелки из Figma
@@ -87,12 +163,31 @@ function MetroIcon() {
   );
 }
 
-export function SellersPropertiesView({ onBack, onBuyersClick }: SellersPropertiesViewProps) {
+export function SellersPropertiesView({
+  onBack,
+  onBuyersClick,
+  onOpenCommissionChat,
+  preselectedClientId,
+}: SellersPropertiesViewProps) {
   const [activeTab, setActiveTab] = useState("company");
   const [activeFilter, setActiveFilter] = useState("leads24h");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
   const [presentationMode, setPresentationMode] = useState(false);
+  const [clientSelectionState, setClientSelectionState] = useState<ClientSelectionState | null>(
+    null,
+  );
+  const [proposalModalState, setProposalModalState] = useState<ProposalModalState | null>(null);
+  const [existingDiscussionState, setExistingDiscussionState] =
+    useState<ExistingDiscussionState | null>(null);
+  const [proposals, setProposals] = useState<CommissionProposal[]>([]);
+  const [discussions, setDiscussions] = useState<Discussion[]>([]);
+
+  const myClients: MyClient[] = [
+    { id: "client-1", name: "Сергей Ким" },
+    { id: "client-2", name: "Дмитрий Орлов" },
+    { id: "client-3", name: "Елена Волкова" },
+  ];
 
   // Моковые данные объектов
   const properties: Property[] = [
@@ -117,7 +212,15 @@ export function SellersPropertiesView({ onBack, onBuyersClick }: SellersProperti
       price: "125 000 000 ₽",
       pricePerMeter: "100 000 ₽/ м²",
       floor: "2 / 15",
-      area: "общая: 65 м², жилая: 45 м², кухня: 17 м²"
+      area: "общая: 65 м², жилая: 45 м², кухня: 17 м²",
+      myCommissionReady: "Да",
+      myCommissionValue: "2.5",
+      myCommissionType: "% от суммы сделки",
+      partnerCommissionReady: "Да",
+      partnerCommissionValue: "50",
+      partnerCommissionType: "% от моей комиссии",
+      partnerAgentName: "Олеся Фивейская",
+      partnerAgentCompany: "Агентство Квартал",
     },
     {
       id: "119673936",
@@ -140,7 +243,13 @@ export function SellersPropertiesView({ onBack, onBuyersClick }: SellersProperti
       price: "125 000 000 ₽",
       pricePerMeter: "100 000 ₽/ м²",
       floor: "2 / 15",
-      area: "общая: 65 м², жилая: 45 м², кухня: 17 м²"
+      area: "общая: 65 м², жилая: 45 м², кухня: 17 м²",
+      myCommissionReady: "Да",
+      myCommissionValue: "3",
+      myCommissionType: "% от суммы сделки",
+      partnerCommissionReady: "Нет",
+      partnerAgentName: "Андрей Смирнов",
+      partnerAgentCompany: "Элит Недвижимость",
     }
   ];
 
@@ -169,6 +278,145 @@ export function SellersPropertiesView({ onBack, onBuyersClick }: SellersProperti
       setSelectedProperties(selectedProperties.filter(id => id !== propertyId));
     }
   };
+
+  const getPropertyById = (propertyId: string) =>
+    properties.find((property) => property.id === propertyId);
+
+  const getClientById = (clientId: string) =>
+    myClients.find((client) => client.id === clientId);
+
+  const getPairKey = (propertyId: string, clientId: string) => `${propertyId}:${clientId}`;
+
+  const openProposalModal = (propertyId: string, clientId: string, clientName: string) => {
+    setProposalModalState({
+      propertyId,
+      clientId,
+      clientName,
+      commissionType: "% от суммы сделки",
+      commissionValue: "",
+      message: "",
+    });
+  };
+
+  const continueWithClientContext = (propertyId: string, clientId: string) => {
+    const client = getClientById(clientId);
+    if (!client) return;
+    const pairKey = getPairKey(propertyId, clientId);
+    const existing = discussions.find(
+      (discussion) => discussion.pairKey === pairKey && discussion.status === "active",
+    );
+
+    if (existing) {
+      setExistingDiscussionState({
+        propertyId,
+        clientId,
+        clientName: existing.clientName,
+        chatId: existing.chatId,
+      });
+      return;
+    }
+
+    openProposalModal(propertyId, clientId, client.name);
+  };
+
+  const handleStartProposal = (propertyId: string) => {
+    if (preselectedClientId) {
+      continueWithClientContext(propertyId, preselectedClientId);
+      return;
+    }
+
+    setClientSelectionState({
+      propertyId,
+      selectedClientId: "",
+    });
+  };
+
+  const handleConfirmClientSelection = () => {
+    if (!clientSelectionState?.selectedClientId) return;
+    const { propertyId, selectedClientId } = clientSelectionState;
+    setClientSelectionState(null);
+    continueWithClientContext(propertyId, selectedClientId);
+  };
+
+  const handleOpenExistingChat = (chatId: string, propertyId: string, clientName: string) => {
+    const property = getPropertyById(propertyId);
+    if (!property || !onOpenCommissionChat) return;
+
+    onOpenCommissionChat({
+      chatId,
+      clientName,
+      propertyAddress: property.location,
+      propertyPrice: property.price,
+      propertyImage: property.photo,
+      agentName: property.partnerAgentName,
+      agentCompany: property.partnerAgentCompany,
+    });
+    setExistingDiscussionState(null);
+  };
+
+  const handleSubmitProposal = () => {
+    if (!proposalModalState) return;
+    const property = getPropertyById(proposalModalState.propertyId);
+    if (!property || !proposalModalState.commissionValue.trim()) return;
+
+    const pairKey = getPairKey(proposalModalState.propertyId, proposalModalState.clientId);
+    const createdAt = new Date().toLocaleString("ru-RU");
+    const chatId = `seller-commission-${pairKey}`;
+
+    setProposals((prev) => {
+      const closedPrevious = prev.map((proposal) =>
+        proposal.pairKey === pairKey && proposal.status === "Ожидает ответа"
+          ? { ...proposal, status: "Закрыто новым предложением" as const }
+          : proposal,
+      );
+
+      return [
+        ...closedPrevious,
+        {
+          id: `proposal-${Date.now()}`,
+          pairKey,
+          propertyId: proposalModalState.propertyId,
+          clientId: proposalModalState.clientId,
+          clientName: proposalModalState.clientName,
+          commissionType: proposalModalState.commissionType,
+          commissionValue: proposalModalState.commissionValue.trim(),
+          message: proposalModalState.message.trim() || undefined,
+          status: "Ожидает ответа",
+          createdAt,
+        },
+      ];
+    });
+
+    setDiscussions((prev) => {
+      const next = prev.map((discussion) =>
+        discussion.pairKey === pairKey ? { ...discussion, status: "closed" as const } : discussion,
+      );
+
+      const activeDiscussion = next.find(
+        (discussion) => discussion.pairKey === pairKey && discussion.status === "active",
+      );
+      if (activeDiscussion) return next;
+
+      return [
+        ...next,
+        {
+          pairKey,
+          propertyId: proposalModalState.propertyId,
+          clientId: proposalModalState.clientId,
+          clientName: proposalModalState.clientName,
+          chatId,
+          status: "active",
+        },
+      ];
+    });
+
+    setProposalModalState(null);
+  };
+
+  const hasActiveProposal = (propertyId: string) =>
+    proposals.some(
+      (proposal) => proposal.propertyId === propertyId && proposal.status === "Ожидает ответа",
+    );
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] flex flex-col">
@@ -380,9 +628,12 @@ export function SellersPropertiesView({ onBack, onBuyersClick }: SellersProperti
                   <p className="text-[#3b3b3b] text-[13px]" style={{ fontVariationSettings: "'wdth' 100" }}>
                     Название компании
                   </p>
-                  <button className="bg-white border border-[#318bff] rounded-[7px] px-[10px] py-[4px] flex items-center gap-[6px] w-fit">
+                  <button
+                    onClick={() => handleStartProposal(property.id)}
+                    className="bg-white border border-[#318bff] rounded-[7px] px-[10px] py-[4px] flex items-center gap-[6px] w-fit hover:bg-[#ecf7ff] transition-colors"
+                  >
                     <MessageCircle className="w-[16px] h-[16px] text-[#318bff]" />
-                    <span className="text-[#318bff] text-[13px]">Написать</span>
+                    <span className="text-[#318bff] text-[13px]">Предложить деление комиссии</span>
                   </button>
                 </div>
 
@@ -530,6 +781,11 @@ export function SellersPropertiesView({ onBack, onBuyersClick }: SellersProperti
                       <p className="text-[#008937] text-[14px]">Аванс/Задаток: дата сделки 18.05.24</p>
                     </div>
                   )}
+                  {hasActiveProposal(property.id) && (
+                    <div className="bg-[#ecf7ff] border border-[#e5effc] rounded-[5px] px-[10px] py-[7px]">
+                      <p className="text-[#318bff] text-[13px]">Активное предложение: Ожидает ответа</p>
+                    </div>
+                  )}
 
                   {/* Дата создания */}
                   <div className="bg-[#f3f3f3] rounded-[5px] px-[10px] py-[2px] flex items-center gap-[4px]">
@@ -571,6 +827,240 @@ export function SellersPropertiesView({ onBack, onBuyersClick }: SellersProperti
           ))}
         </div>
       </div>
+
+      <Dialog
+        open={!!clientSelectionState}
+        onOpenChange={(open) => {
+          if (!open) setClientSelectionState(null);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Выберите моего клиента</DialogTitle>
+            <DialogDescription>
+              Это обязательный шаг перед формированием предложения комиссии.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            {myClients.map((client) => (
+              <button
+                key={client.id}
+                onClick={() =>
+                  setClientSelectionState((prev) =>
+                    prev ? { ...prev, selectedClientId: client.id } : prev,
+                  )
+                }
+                className={`w-full rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                  clientSelectionState?.selectedClientId === client.id
+                    ? "border-[#318bff] bg-[#ecf7ff] text-[#0d0d0d]"
+                    : "border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                {client.name}
+              </button>
+            ))}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setClientSelectionState(null)}>
+              Отмена
+            </Button>
+            <Button
+              className="bg-[#1976D2] hover:bg-[#1565C0] text-white"
+              onClick={handleConfirmClientSelection}
+              disabled={!clientSelectionState?.selectedClientId}
+            >
+              Продолжить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!existingDiscussionState}
+        onOpenChange={(open) => {
+          if (!open) setExistingDiscussionState(null);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Обсуждение уже идет</DialogTitle>
+            <DialogDescription>
+              {`Обсуждение уже идет по клиенту: ${existingDiscussionState?.clientName || ""}`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!existingDiscussionState) return;
+                handleOpenExistingChat(
+                  existingDiscussionState.chatId,
+                  existingDiscussionState.propertyId,
+                  existingDiscussionState.clientName,
+                );
+              }}
+            >
+              Открыть чат
+            </Button>
+            <Button
+              className="bg-[#1976D2] hover:bg-[#1565C0] text-white"
+              onClick={() => {
+                if (!existingDiscussionState) return;
+                setExistingDiscussionState(null);
+                setClientSelectionState({
+                  propertyId: existingDiscussionState.propertyId,
+                  selectedClientId: existingDiscussionState.clientId,
+                });
+              }}
+            >
+              Предложить по новому
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!proposalModalState}
+        onOpenChange={(open) => {
+          if (!open) setProposalModalState(null);
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Предложить деление комиссии</DialogTitle>
+            <DialogDescription>
+              Формализованное предложение встречному агенту без перехода в МЛС Терминал.
+            </DialogDescription>
+          </DialogHeader>
+
+          {proposalModalState && (
+            <div className="space-y-5">
+              {(() => {
+                const property = getPropertyById(proposalModalState.propertyId);
+                if (!property) return null;
+                return (
+                  <>
+                    <div className="space-y-3">
+                      <h4 className="text-sm text-gray-700">Информация</h4>
+                      <div className="rounded-md border border-gray-200 p-3 space-y-2">
+                        <p className="text-sm text-gray-900">
+                          <span className="text-gray-500">Мой объект:</span> {property.location}
+                        </p>
+                        <p className="text-sm text-gray-900">
+                          <span className="text-gray-500">Цена:</span> {property.price}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="rounded-md border border-gray-200 p-3 space-y-2">
+                          <p className="text-sm text-gray-700">Мои условия</p>
+                          <p className="text-sm text-gray-900">
+                            Готов делиться: {property.myCommissionReady}
+                          </p>
+                          <p className="text-sm text-gray-900">
+                            Размер и тип:{" "}
+                            {property.myCommissionValue
+                              ? `${property.myCommissionValue} (${property.myCommissionType})`
+                              : "Не указано"}
+                          </p>
+                        </div>
+                        <div className="rounded-md border border-gray-200 p-3 space-y-2">
+                          <p className="text-sm text-gray-700">Условия встречного агента</p>
+                          <p className="text-sm text-gray-900">
+                            Готов делиться: {property.partnerCommissionReady || "Не указано"}
+                          </p>
+                          <p className="text-sm text-gray-900">
+                            Размер и тип:{" "}
+                            {property.partnerCommissionValue && property.partnerCommissionType
+                              ? `${property.partnerCommissionValue} (${property.partnerCommissionType})`
+                              : "Не указано"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h4 className="text-sm text-gray-700">Мое предложение</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label>Тип комиссии</Label>
+                          <select
+                            value={proposalModalState.commissionType}
+                            onChange={(e) =>
+                              setProposalModalState((prev) =>
+                                prev
+                                  ? {
+                                      ...prev,
+                                      commissionType: e.target.value as ProposalModalState["commissionType"],
+                                    }
+                                  : prev,
+                              )
+                            }
+                            className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
+                          >
+                            <option>% от суммы сделки</option>
+                            <option>% от моей комиссии</option>
+                            <option>Фикс</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Значение комиссии</Label>
+                          <Input
+                            value={proposalModalState.commissionValue}
+                            onChange={(e) =>
+                              setProposalModalState((prev) =>
+                                prev ? { ...prev, commissionValue: e.target.value } : prev,
+                              )
+                            }
+                            placeholder="Например: 50"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Краткий текст сообщения (необязательно)</Label>
+                        <Textarea
+                          value={proposalModalState.message}
+                          onChange={(e) =>
+                            setProposalModalState((prev) =>
+                              prev ? { ...prev, message: e.target.value } : prev,
+                            )
+                          }
+                          className="min-h-[90px]"
+                        />
+                      </div>
+
+                      <div className="rounded-md bg-[#f5f9ff] border border-[#dce9ff] p-3">
+                        <p className="text-sm text-[#2d5ea8]">
+                          {`Предлагаю распределить комиссию следующим образом: ${
+                            proposalModalState.commissionValue || "—"
+                          } (${proposalModalState.commissionType}).`}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setProposalModalState(null)}>
+              Отмена
+            </Button>
+            <Button
+              className="bg-[#1976D2] hover:bg-[#1565C0] text-white"
+              onClick={handleSubmitProposal}
+              disabled={!proposalModalState?.commissionValue.trim()}
+            >
+              Отправить предложение
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
