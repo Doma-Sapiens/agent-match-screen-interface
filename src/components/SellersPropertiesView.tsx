@@ -1204,6 +1204,9 @@ export function SellersPropertiesView({
                           <p className="text-sm text-gray-900">
                             Тип деления: 2.5 % от суммы сделки
                           </p>
+                          <p className="text-sm text-gray-900">
+                            Размер в рублях: {rub.format(30000)} ₽
+                          </p>
                         </div>
                         <div className="rounded-md border border-gray-200 p-3 space-y-2">
                           <p className="text-sm text-gray-700">
@@ -1215,6 +1218,9 @@ export function SellersPropertiesView({
                           </p>
                           <p className="text-sm text-gray-900">
                             Тип: 50% от своей комиссии
+                          </p>
+                          <p className="text-sm text-gray-900">
+                            Размер в рублях: {rub.format(60000)} ₽
                           </p>
                         </div>
                       </div>
