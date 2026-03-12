@@ -348,7 +348,8 @@ export function SellersPropertiesView({
       clientName,
       totalCommissionInput: String(totalCommissionDefault),
       myShareInput: "",
-      message: "",
+      message:
+        "Здравствуйте! Предлагаю зафиксировать условия деления комиссии. Если вам удобно — согласуем в чате.",
     });
   };
 
@@ -1295,7 +1296,7 @@ export function SellersPropertiesView({
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Комментарий (необязательно)</Label>
+                        <Label>Приветственное сообщение</Label>
                         <Textarea
                           value={proposalModalState.message}
                           onChange={(e) =>
