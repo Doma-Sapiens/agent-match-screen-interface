@@ -1202,7 +1202,7 @@ export function SellersPropertiesView({
                             Готов делиться: {property.myCommissionReady}
                           </p>
                           <p className="text-sm text-gray-900">
-                            Размер в рублях: {rub.format(30000)} ₽
+                            Тип деления: 2.5 % от суммы сделки
                           </p>
                         </div>
                         <div className="rounded-md border border-gray-200 p-3 space-y-2">
@@ -1214,7 +1214,7 @@ export function SellersPropertiesView({
                             {property.partnerCommissionReady || "Не указано"}
                           </p>
                           <p className="text-sm text-gray-900">
-                            Размер в рублях: {rub.format(60000)} ₽
+                            Тип: 50% от своей комиссии
                           </p>
                         </div>
                       </div>
