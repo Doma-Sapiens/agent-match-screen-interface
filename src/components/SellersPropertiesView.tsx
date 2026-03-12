@@ -1,5 +1,15 @@
-import { useEffect, useState } from "react";
-import { ArrowLeft, Search, Filter, Plus, MapPin, MessageCircle, MoreVertical, SlidersHorizontal, Calculator } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  ArrowLeft,
+  Search,
+  Filter,
+  Plus,
+  MapPin,
+  MessageCircle,
+  MoreVertical,
+  SlidersHorizontal,
+  Calculator,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Checkbox } from "./ui/checkbox";
@@ -107,6 +117,7 @@ interface ProposalModalState {
   propertyId: string;
   clientId: string;
   clientName: string;
+  totalCommissionInput: string;
   myShareInput: string;
   message: string;
 }
@@ -127,7 +138,12 @@ interface ExistingDiscussionState {
 function SortArrow() {
   return (
     <div className="relative shrink-0 size-[12px]">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
+      <svg
+        className="block size-full"
+        fill="none"
+        preserveAspectRatio="none"
+        viewBox="0 0 12 12"
+      >
         <g>
           <path d={svgPaths.pc8da800} fill="#6C6C6C" />
         </g>
@@ -140,7 +156,12 @@ function SortArrow() {
 function EditIcon() {
   return (
     <div className="relative shrink-0 size-[20px]">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20 20">
+      <svg
+        className="block size-full"
+        fill="none"
+        preserveAspectRatio="none"
+        viewBox="0 0 20 20"
+      >
         <g clipPath="url(#clip0_66_2286)">
           <path d={svgPaths.p2a438cf0} fill="white" />
         </g>
@@ -158,7 +179,12 @@ function EditIcon() {
 function MetroIcon() {
   return (
     <div className="relative shrink-0 size-[20px]">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20 20">
+      <svg
+        className="block size-full"
+        fill="none"
+        preserveAspectRatio="none"
+        viewBox="0 0 20 20"
+      >
         <g>
           <path d={svgPaths.p3adcbf80} fill="#318BFF" />
         </g>
@@ -173,15 +199,25 @@ export function SellersPropertiesView({
   onOpenCommissionChat,
   preselectedClientId,
 }: SellersPropertiesViewProps) {
+  const rub = useMemo(
+    () => new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 }),
+    [],
+  );
+
+  const int = (value: string | number | null | undefined): number => {
+    const raw = String(value ?? "").trim();
+    const n = parseInt(raw || "0", 10);
+    return Number.isFinite(n) ? n : 0;
+  };
   const [activeTab, setActiveTab] = useState("company");
   const [activeFilter, setActiveFilter] = useState("leads24h");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
   const [presentationMode, setPresentationMode] = useState(false);
-  const [clientSelectionState, setClientSelectionState] = useState<ClientSelectionState | null>(
-    null,
-  );
-  const [proposalModalState, setProposalModalState] = useState<ProposalModalState | null>(null);
+  const [clientSelectionState, setClientSelectionState] =
+    useState<ClientSelectionState | null>(null);
+  const [proposalModalState, setProposalModalState] =
+    useState<ProposalModalState | null>(null);
   const [existingDiscussionState, setExistingDiscussionState] =
     useState<ExistingDiscussionState | null>(null);
   const [proposals, setProposals] = useState<CommissionProposal[]>([]);
@@ -199,13 +235,15 @@ export function SellersPropertiesView({
       id: "119673935",
       responsible: "Милкин Илья",
       createdBy: "Милкин Илья",
-      photo: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400",
+      photo:
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400",
       contactName: "Георгий Белоусов",
       contactPhone: "+7 911 545 69 87",
       advertisingStatus: "Итого: 60 дн. | 5 000 р. | 150 просм-в",
       propertyType: "Квартира",
       propertySubtype: "2 комн. Стандартная",
-      location: "г. Санкт-Петербург, Адмиралтейский р-н, Наб.Обводного канала д. 154",
+      location:
+        "г. Санкт-Петербург, Адмиралтейский р-н, Наб.Обводного канала д. 154",
       house: "д. 150, корп: 1, лит: А, стр: 2",
       metro: "Адмиралтейская",
       createdDate: "20.03.24 в 12:45",
@@ -230,13 +268,15 @@ export function SellersPropertiesView({
       id: "119673936",
       responsible: "Милкин Илья",
       createdBy: "Милкин Илья",
-      photo: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400",
+      photo:
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400",
       contactName: "Георгий Белоусов",
       contactPhone: "+7 911 545 69 87",
       advertisingStatus: "Итого: 60 дн. | 5 000 р. | 150 просм-в",
       propertyType: "Квартира",
       propertySubtype: "2 комн. Стандартная",
-      location: "г. Санкт-Петербург, Адмиралтейский р-н, Наб.Обводного канала д. 154",
+      location:
+        "г. Санкт-Петербург, Адмиралтейский р-н, Наб.Обводного канала д. 154",
       house: "д. 150, корп: 1, лит: А, стр: 2",
       metro: "Садовая",
       createdDate: "20.03.24 в 12:45",
@@ -254,7 +294,7 @@ export function SellersPropertiesView({
       partnerCommissionReady: "Нет",
       partnerAgentName: "Андрей Смирнов",
       partnerAgentCompany: "Элит Недвижимость",
-    }
+    },
   ];
 
   const filterCounts = {
@@ -264,12 +304,12 @@ export function SellersPropertiesView({
     leads24h: 2422,
     readyForDeposit: 2,
     agreement10d: 4,
-    depositMade: 3
+    depositMade: 3,
   };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedProperties(properties.map(p => p.id));
+      setSelectedProperties(properties.map((p) => p.id));
     } else {
       setSelectedProperties([]);
     }
@@ -279,7 +319,9 @@ export function SellersPropertiesView({
     if (checked) {
       setSelectedProperties([...selectedProperties, propertyId]);
     } else {
-      setSelectedProperties(selectedProperties.filter(id => id !== propertyId));
+      setSelectedProperties(
+        selectedProperties.filter((id) => id !== propertyId),
+      );
     }
   };
 
@@ -289,13 +331,22 @@ export function SellersPropertiesView({
   const getClientById = (clientId: string) =>
     myClients.find((client) => client.id === clientId);
 
-  const getPairKey = (propertyId: string, clientId: string) => `${propertyId}:${clientId}`;
+  const getPairKey = (propertyId: string, clientId: string) =>
+    `${propertyId}:${clientId}`;
 
-  const openProposalModal = (propertyId: string, clientId: string, clientName: string) => {
+  const openProposalModal = (
+    propertyId: string,
+    clientId: string,
+    clientName: string,
+  ) => {
+    // Временные значения по запросу (позже привяжем к данным карточек)
+    const totalCommissionDefault = 90000;
+
     setProposalModalState({
       propertyId,
       clientId,
       clientName,
+      totalCommissionInput: String(totalCommissionDefault),
       myShareInput: "",
       message: "",
     });
@@ -306,7 +357,8 @@ export function SellersPropertiesView({
     if (!client) return;
     const pairKey = getPairKey(propertyId, clientId);
     const existing = discussions.find(
-      (discussion) => discussion.pairKey === pairKey && discussion.status === "active",
+      (discussion) =>
+        discussion.pairKey === pairKey && discussion.status === "active",
     );
 
     if (existing) {
@@ -341,7 +393,11 @@ export function SellersPropertiesView({
     continueWithClientContext(propertyId, selectedClientId);
   };
 
-  const handleOpenExistingChat = (chatId: string, propertyId: string, clientName: string) => {
+  const handleOpenExistingChat = (
+    chatId: string,
+    propertyId: string,
+    clientName: string,
+  ) => {
     const property = getPropertyById(propertyId);
     if (!property || !onOpenCommissionChat) return;
 
@@ -372,14 +428,20 @@ export function SellersPropertiesView({
     }
     const partnerShare = Number((100 - myShare).toFixed(2));
 
-    const pairKey = getPairKey(proposalModalState.propertyId, proposalModalState.clientId);
+    const pairKey = getPairKey(
+      proposalModalState.propertyId,
+      proposalModalState.clientId,
+    );
     const createdAt = new Date().toLocaleString("ru-RU");
-    const expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(
+      Date.now() + 3 * 24 * 60 * 60 * 1000,
+    ).toISOString();
     const chatId = `seller-commission-${pairKey}`;
 
     setProposals((prev) => {
       const closedPrevious = prev.map((proposal) =>
-        proposal.pairKey === pairKey && proposal.status === "Ожидает согласования условий"
+        proposal.pairKey === pairKey &&
+        proposal.status === "Ожидает согласования условий"
           ? { ...proposal, status: "Закрыто новым предложением" as const }
           : proposal,
       );
@@ -405,11 +467,14 @@ export function SellersPropertiesView({
 
     setDiscussions((prev) => {
       const next = prev.map((discussion) =>
-        discussion.pairKey === pairKey ? { ...discussion, status: "closed" as const } : discussion,
+        discussion.pairKey === pairKey
+          ? { ...discussion, status: "closed" as const }
+          : discussion,
       );
 
       const activeDiscussion = next.find(
-        (discussion) => discussion.pairKey === pairKey && discussion.status === "active",
+        (discussion) =>
+          discussion.pairKey === pairKey && discussion.status === "active",
       );
       if (activeDiscussion) return next;
 
@@ -441,7 +506,8 @@ export function SellersPropertiesView({
       const now = Date.now();
       setProposals((prev) =>
         prev.map((proposal) => {
-          if (proposal.status !== "Ожидает согласования условий") return proposal;
+          if (proposal.status !== "Ожидает согласования условий")
+            return proposal;
           const expiresAtMs = new Date(proposal.expiresAt).getTime();
           if (Number.isNaN(expiresAtMs) || expiresAtMs > now) return proposal;
           return { ...proposal, status: "Проигнорировано" };
@@ -468,7 +534,10 @@ export function SellersPropertiesView({
               <h1 className="text-[#0d0d0d]">
                 Продавцы, Объекты компании – {filterCounts.all}
               </h1>
-              <p className="text-[#848484] text-[14px]" style={{ fontVariationSettings: "'wdth' 100" }}>
+              <p
+                className="text-[#848484] text-[14px]"
+                style={{ fontVariationSettings: "'wdth' 100" }}
+              >
                 Управление объектами недвижимости
               </p>
             </div>
@@ -501,7 +570,9 @@ export function SellersPropertiesView({
 
             {/* Режим презентации */}
             <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg bg-white">
-              <span className="text-[13px] text-gray-700">Режим презентации</span>
+              <span className="text-[13px] text-gray-700">
+                Режим презентации
+              </span>
               <Switch
                 checked={presentationMode}
                 onCheckedChange={setPresentationMode}
@@ -622,7 +693,7 @@ export function SellersPropertiesView({
       <div className="flex-1 overflow-auto">
         <div className="p-6">
           {properties.map((property, index) => (
-            <div 
+            <div
               key={property.id}
               className="relative mb-4 bg-white rounded-lg border border-[#e5effc] shadow-[0px_4px_15px_0px_rgba(28,105,255,0.06)] overflow-hidden"
             >
@@ -632,9 +703,14 @@ export function SellersPropertiesView({
                 <div className="bg-white flex flex-col items-center p-[10px] w-[36px] border-r border-[#f3f3f3] shadow-[2px_0px_6px_0px_rgba(0,0,0,0.04)]">
                   <Checkbox
                     checked={selectedProperties.includes(property.id)}
-                    onCheckedChange={(checked) => handleSelectProperty(property.id, checked as boolean)}
+                    onCheckedChange={(checked) =>
+                      handleSelectProperty(property.id, checked as boolean)
+                    }
                   />
-                  <p className="text-[#848484] text-[14px] text-center mt-2" style={{ fontVariationSettings: "'wdth' 100" }}>
+                  <p
+                    className="text-[#848484] text-[14px] text-center mt-2"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
                     {index + 1}
                   </p>
                 </div>
@@ -642,8 +718,8 @@ export function SellersPropertiesView({
                 {/* Фото */}
                 <div className="bg-white flex flex-col gap-[10px] p-[10px] w-[152px] border-r border-[#f3f3f3]">
                   <div className="relative bg-[#f3f3f3] rounded-[10px] shadow-[0px_0px_10px_0px_rgba(0,0,0,0.06)] h-[96px] w-[132px] overflow-hidden">
-                    <img 
-                      src={property.photo} 
+                    <img
+                      src={property.photo}
                       alt="Объект"
                       className="w-full h-full object-cover"
                     />
@@ -655,11 +731,19 @@ export function SellersPropertiesView({
 
                 {/* Ответственный */}
                 <div className="bg-white flex flex-col gap-[10px] p-[16px] w-[180px] border-r border-[#f3f3f3]">
-                  <p className="text-[#318bff] text-[14px]">{property.responsible}</p>
-                  <p className="text-[#848484] text-[13px]" style={{ fontVariationSettings: "'wdth' 100" }}>
+                  <p className="text-[#318bff] text-[14px]">
+                    {property.responsible}
+                  </p>
+                  <p
+                    className="text-[#848484] text-[13px]"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
                     Агент 007
                   </p>
-                  <p className="text-[#3b3b3b] text-[13px]" style={{ fontVariationSettings: "'wdth' 100" }}>
+                  <p
+                    className="text-[#3b3b3b] text-[13px]"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
                     Название компании
                   </p>
                   <button
@@ -667,7 +751,9 @@ export function SellersPropertiesView({
                     className="bg-white border border-[#318bff] rounded-[7px] px-[10px] py-[4px] flex items-center gap-[6px] w-fit hover:bg-[#ecf7ff] transition-colors"
                   >
                     <MessageCircle className="w-[16px] h-[16px] text-[#318bff]" />
-                    <span className="text-[#318bff] text-[13px]">Предложить деление комиссии</span>
+                    <span className="text-[#318bff] text-[13px]">
+                      Предложить деление комиссии
+                    </span>
                   </button>
                 </div>
 
@@ -677,13 +763,19 @@ export function SellersPropertiesView({
                   <div className="flex flex-col gap-[10px] text-[#0d0d0d] text-[14px]">
                     <p>
                       <span>Итого: </span>
-                      <span className="text-[#3b3b3b]" style={{ fontVariationSettings: "'wdth' 100" }}>
+                      <span
+                        className="text-[#3b3b3b]"
+                        style={{ fontVariationSettings: "'wdth' 100" }}
+                      >
                         60 дн. | 5 000 р. | 150 просм-в
                       </span>
                     </p>
                     <p>
                       <span>Авито: </span>
-                      <span className="text-[#3b3b3b]" style={{ fontVariationSettings: "'wdth' 100" }}>
+                      <span
+                        className="text-[#3b3b3b]"
+                        style={{ fontVariationSettings: "'wdth' 100" }}
+                      >
                         60 дн. | 5 000 р. | 150 просм-в
                       </span>
                     </p>
@@ -695,11 +787,16 @@ export function SellersPropertiesView({
                   <div className="flex items-center gap-[8px]">
                     <div className="bg-[#ffcb00] rounded-full size-[8px]"></div>
                     <div className="flex items-center gap-[4px]">
-                      <p className="text-[#318bff] text-[14px]">{property.contactName}</p>
+                      <p className="text-[#318bff] text-[14px]">
+                        {property.contactName}
+                      </p>
                       <SortArrow />
                     </div>
                   </div>
-                  <p className="text-[#0d0d0d] text-[14px]" style={{ fontVariationSettings: "'wdth' 100" }}>
+                  <p
+                    className="text-[#0d0d0d] text-[14px]"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
                     {property.contactPhone}
                   </p>
                   <button className="bg-white border border-[#318bff] rounded-[7px] px-[10px] py-[6px] text-[#318bff] text-[13px] w-fit">
@@ -709,12 +806,20 @@ export function SellersPropertiesView({
 
                 {/* Тип объекта */}
                 <div className="bg-white flex flex-col gap-[10px] p-[16px] w-[160px] border-r border-[#f3f3f3]">
-                  <p className="text-[#0d0d0d] text-[14px]">{property.propertyType}</p>
-                  <p className="text-[#0d0d0d] text-[14px]" style={{ fontVariationSettings: "'wdth' 100" }}>
-                    {property.propertySubtype.split(' ')[0]}
+                  <p className="text-[#0d0d0d] text-[14px]">
+                    {property.propertyType}
                   </p>
-                  <p className="text-[#848484] text-[14px]" style={{ fontVariationSettings: "'wdth' 100" }}>
-                    {property.propertySubtype.split(' ').slice(1).join(' ')}
+                  <p
+                    className="text-[#0d0d0d] text-[14px]"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
+                    {property.propertySubtype.split(" ")[0]}
+                  </p>
+                  <p
+                    className="text-[#848484] text-[14px]"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
+                    {property.propertySubtype.split(" ").slice(1).join(" ")}
                   </p>
                   <p className="text-[#318bff] text-[14px]">Пересечений нет</p>
                 </div>
@@ -724,10 +829,16 @@ export function SellersPropertiesView({
                   <div className="flex gap-[10px] items-start">
                     <MapPin className="w-[20px] h-[20px] text-[#318bff] flex-shrink-0 mt-0.5" />
                     <div className="flex flex-col gap-[10px]">
-                      <p className="text-[#318bff] text-[14px]" style={{ fontVariationSettings: "'wdth' 100" }}>
+                      <p
+                        className="text-[#318bff] text-[14px]"
+                        style={{ fontVariationSettings: "'wdth' 100" }}
+                      >
                         {property.location}
                       </p>
-                      <div className="text-[#0d0d0d] text-[14px]" style={{ fontVariationSettings: "'wdth' 100" }}>
+                      <div
+                        className="text-[#0d0d0d] text-[14px]"
+                        style={{ fontVariationSettings: "'wdth' 100" }}
+                      >
                         <p className="mb-0">Белоостровское шоссе</p>
                         <p>От КАД 15 км</p>
                       </div>
@@ -737,16 +848,28 @@ export function SellersPropertiesView({
 
                 {/* Дом */}
                 <div className="bg-white flex flex-col gap-[6px] p-[16px] w-[100px] border-r border-[#f3f3f3]">
-                  <p className="text-[#0d0d0d] text-[14px]" style={{ fontVariationSettings: "'wdth' 100" }}>
+                  <p
+                    className="text-[#0d0d0d] text-[14px]"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
                     <span className="text-[#848484]">дом: </span>150
                   </p>
-                  <p className="text-[#848484] text-[14px]" style={{ fontVariationSettings: "'wdth' 100" }}>
+                  <p
+                    className="text-[#848484] text-[14px]"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
                     корп:<span className="text-[#0d0d0d]"> 1</span>
                   </p>
-                  <p className="text-[#848484] text-[14px]" style={{ fontVariationSettings: "'wdth' 100" }}>
+                  <p
+                    className="text-[#848484] text-[14px]"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
                     лит: <span className="text-[#0d0d0d]">А</span>
                   </p>
-                  <p className="text-[#848484] text-[14px]" style={{ fontVariationSettings: "'wdth' 100" }}>
+                  <p
+                    className="text-[#848484] text-[14px]"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
                     стр: <span className="text-[#0d0d0d]">2</span>
                   </p>
                 </div>
@@ -755,7 +878,10 @@ export function SellersPropertiesView({
                 <div className="bg-white flex flex-col gap-[6px] p-[16px] w-[180px] border-r border-[#f3f3f3]">
                   <div className="flex gap-[5px] items-center">
                     <MetroIcon />
-                    <p className="text-[#0d0d0d] text-[14px] overflow-ellipsis overflow-hidden whitespace-nowrap w-[120px]" style={{ fontVariationSettings: "'wdth' 100" }}>
+                    <p
+                      className="text-[#0d0d0d] text-[14px] overflow-ellipsis overflow-hidden whitespace-nowrap w-[120px]"
+                      style={{ fontVariationSettings: "'wdth' 100" }}
+                    >
                       {property.metro}
                     </p>
                   </div>
@@ -763,40 +889,67 @@ export function SellersPropertiesView({
 
                 {/* Цена */}
                 <div className="bg-white flex flex-col gap-[10px] p-[16px] w-[140px] border-r border-[#f3f3f3]">
-                  <p className="text-[#0d0d0d] text-[16px] overflow-ellipsis overflow-hidden whitespace-nowrap" style={{ fontVariationSettings: "'wdth' 100" }}>
+                  <p
+                    className="text-[#0d0d0d] text-[16px] overflow-ellipsis overflow-hidden whitespace-nowrap"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
                     {property.price}
                   </p>
-                  <p className="text-[#0d0d0d] text-[14px] overflow-ellipsis overflow-hidden whitespace-nowrap" style={{ fontVariationSettings: "'wdth' 100" }}>
+                  <p
+                    className="text-[#0d0d0d] text-[14px] overflow-ellipsis overflow-hidden whitespace-nowrap"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
                     {property.pricePerMeter}
                   </p>
-                  <p className="text-[#848484] text-[14px] overflow-ellipsis overflow-hidden whitespace-nowrap" style={{ fontVariationSettings: "'wdth' 100" }}>
+                  <p
+                    className="text-[#848484] text-[14px] overflow-ellipsis overflow-hidden whitespace-nowrap"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
                     Торг, ипотека
                   </p>
                 </div>
 
                 {/* Этаж */}
                 <div className="bg-white flex flex-col gap-[10px] p-[16px] w-[156px] border-r border-[#f3f3f3]">
-                  <p className="text-[#0d0d0d] text-[14px] whitespace-nowrap" style={{ fontVariationSettings: "'wdth' 100" }}>
+                  <p
+                    className="text-[#0d0d0d] text-[14px] whitespace-nowrap"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
                     {property.floor}
                   </p>
-                  <p className="text-[#0d0d0d] text-[14px] whitespace-nowrap" style={{ fontVariationSettings: "'wdth' 100" }}>
+                  <p
+                    className="text-[#0d0d0d] text-[14px] whitespace-nowrap"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
                     2 лифта
                   </p>
-                  <p className="text-[#0d0d0d] text-[14px] whitespace-nowrap" style={{ fontVariationSettings: "'wdth' 100" }}>
+                  <p
+                    className="text-[#0d0d0d] text-[14px] whitespace-nowrap"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
                     <span className="text-[#848484]">Мусоропровод: </span>—
                   </p>
                 </div>
 
                 {/* Площади */}
                 <div className="bg-white flex flex-col gap-[10px] p-[16px] w-[160px]">
-                  <p className="text-[#848484] text-[14px] overflow-ellipsis overflow-hidden whitespace-nowrap" style={{ fontVariationSettings: "'wdth' 100" }}>
-                    {property.area.split(',')[0]}
+                  <p
+                    className="text-[#848484] text-[14px] overflow-ellipsis overflow-hidden whitespace-nowrap"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
+                    {property.area.split(",")[0]}
                   </p>
-                  <p className="text-[#848484] text-[14px] overflow-ellipsis overflow-hidden whitespace-nowrap" style={{ fontVariationSettings: "'wdth' 100" }}>
-                    {property.area.split(',')[1]}
+                  <p
+                    className="text-[#848484] text-[14px] overflow-ellipsis overflow-hidden whitespace-nowrap"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
+                    {property.area.split(",")[1]}
                   </p>
-                  <p className="text-[#848484] text-[14px] overflow-ellipsis overflow-hidden whitespace-nowrap" style={{ fontVariationSettings: "'wdth' 100" }}>
-                    {property.area.split(',')[2]}
+                  <p
+                    className="text-[#848484] text-[14px] overflow-ellipsis overflow-hidden whitespace-nowrap"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
+                    {property.area.split(",")[2]}
                   </p>
                 </div>
               </div>
@@ -806,13 +959,17 @@ export function SellersPropertiesView({
                 <div className="flex items-center gap-[10px]">
                   {/* ID объекта */}
                   <div className="bg-[#ecf7ff] border border-[#e5effc] rounded-[5px] px-[10px] py-[2px] flex items-center gap-[6px]">
-                    <p className="text-[#318bff] text-[13px]">id-{property.id}</p>
+                    <p className="text-[#318bff] text-[13px]">
+                      id-{property.id}
+                    </p>
                   </div>
 
                   {/* Статус */}
                   {activeFilter === "leads24h" && (
                     <div className="bg-[#ebf8ee] border border-[#e5effc] rounded-[5px] px-[10px] py-[7px]">
-                      <p className="text-[#008937] text-[14px]">Аванс/Задаток: дата сделки 18.05.24</p>
+                      <p className="text-[#008937] text-[14px]">
+                        Аванс/Задаток: дата сделки 18.05.24
+                      </p>
                     </div>
                   )}
                   {hasActiveProposal(property.id) && (
@@ -825,16 +982,24 @@ export function SellersPropertiesView({
 
                   {/* Дата создания */}
                   <div className="bg-[#f3f3f3] rounded-[5px] px-[10px] py-[2px] flex items-center gap-[4px]">
-                    <p className="text-[#848484] text-[13px] w-[136px]" style={{ fontVariationSettings: "'wdth' 100" }}>
-                      <span className="text-[#0d0d0d]">Созд:</span> {property.createdDate}
+                    <p
+                      className="text-[#848484] text-[13px] w-[136px]"
+                      style={{ fontVariationSettings: "'wdth' 100" }}
+                    >
+                      <span className="text-[#0d0d0d]">Созд:</span>{" "}
+                      {property.createdDate}
                     </p>
                     <SortArrow />
                   </div>
 
                   {/* Дата изменения */}
                   <div className="bg-[#f3f3f3] rounded-[5px] px-[10px] py-[2px] flex items-center gap-[4px]">
-                    <p className="text-[#848484] text-[13px] w-[132px]" style={{ fontVariationSettings: "'wdth' 100" }}>
-                      <span className="text-[#3b3b3b]">Изм:</span> {property.modifiedDate}
+                    <p
+                      className="text-[#848484] text-[13px] w-[132px]"
+                      style={{ fontVariationSettings: "'wdth' 100" }}
+                    >
+                      <span className="text-[#3b3b3b]">Изм:</span>{" "}
+                      {property.modifiedDate}
                     </p>
                     <SortArrow />
                   </div>
@@ -842,9 +1007,9 @@ export function SellersPropertiesView({
 
                 {/* Кнопки действий */}
                 <div className="flex items-center gap-[10px]">
-                  <button 
+                  <button
                     onClick={() => onBuyersClick?.(property.id)}
-                    className="bg-[#ebf8f5] border border-[#e5effc] rounded-[8px] px-[16px] py-[10px] text-[#05a87c] text-[14px] hover:bg-[#d5f2eb] transition-colors" 
+                    className="bg-[#ebf8f5] border border-[#e5effc] rounded-[8px] px-[16px] py-[10px] text-[#05a87c] text-[14px] hover:bg-[#d5f2eb] transition-colors"
                     style={{ fontVariationSettings: "'wdth' 100" }}
                   >
                     Покупателей - {property.buyersCount}
@@ -852,7 +1017,12 @@ export function SellersPropertiesView({
                   <button className="bg-[#ecf7ff] border border-[#e5effc] rounded-[8px] px-[20px] py-[10px] w-[60px] h-[32px] flex items-center justify-center relative">
                     <MoreVertical className="w-[20px] h-[20px] text-[#318bff]" />
                     <div className="absolute left-[40px] size-[6px] top-[9px]">
-                      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 6 6">
+                      <svg
+                        className="block size-full"
+                        fill="none"
+                        preserveAspectRatio="none"
+                        viewBox="0 0 6 6"
+                      >
                         <circle cx="3" cy="3" fill="#FF3737" r="3" />
                       </svg>
                     </div>
@@ -899,7 +1069,10 @@ export function SellersPropertiesView({
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setClientSelectionState(null)}>
+            <Button
+              variant="outline"
+              onClick={() => setClientSelectionState(null)}
+            >
               Отмена
             </Button>
             <Button
@@ -968,7 +1141,8 @@ export function SellersPropertiesView({
           <DialogHeader>
             <DialogTitle>Предложить деление комиссии</DialogTitle>
             <DialogDescription>
-              Формализованное предложение встречному агенту без перехода в МЛС Терминал.
+              Формализованное предложение встречному агенту без перехода в МЛС
+              Терминал.
             </DialogDescription>
           </DialogHeader>
 
@@ -979,9 +1153,13 @@ export function SellersPropertiesView({
                 if (!property) return null;
                 const myShareRaw = proposalModalState.myShareInput.trim();
                 const myShareValue =
-                  myShareRaw === "" ? NaN : Number(proposalModalState.myShareInput);
+                  myShareRaw === ""
+                    ? NaN
+                    : Number(proposalModalState.myShareInput);
                 const isMyShareValid =
-                  !Number.isNaN(myShareValue) && myShareValue >= 0 && myShareValue <= 100;
+                  !Number.isNaN(myShareValue) &&
+                  myShareValue >= 0 &&
+                  myShareValue <= 100;
                 const partnerShareValue = isMyShareValid
                   ? Number((100 - myShareValue).toFixed(2))
                   : null;
@@ -1003,13 +1181,17 @@ export function SellersPropertiesView({
                     </div>
 
                     <div className="space-y-3">
-                      <h4 className="text-sm text-gray-700">Текущие условия сторон</h4>
+                      <h4 className="text-sm text-gray-700">
+                        Текущие условия сторон
+                      </h4>
                       <div className="rounded-md border border-gray-200 p-3 space-y-2">
                         <p className="text-sm text-gray-900">
-                          <span className="text-gray-500">Мой объект:</span> {property.location}
+                          <span className="text-gray-500">Мой объект:</span>{" "}
+                          {property.location}
                         </p>
                         <p className="text-sm text-gray-900">
-                          <span className="text-gray-500">Цена:</span> {property.price}
+                          <span className="text-gray-500">Цена:</span>{" "}
+                          {property.price}
                         </p>
                       </div>
 
@@ -1020,26 +1202,20 @@ export function SellersPropertiesView({
                             Готов делиться: {property.myCommissionReady}
                           </p>
                           <p className="text-sm text-gray-900">
-                            Размер и тип:{" "}
-                            {property.myCommissionValue
-                              ? `${property.myCommissionValue} (${property.myCommissionType})`
-                              : "Не указано"}
+                            Размер в рублях: {rub.format(30000)} ₽
                           </p>
                         </div>
                         <div className="rounded-md border border-gray-200 p-3 space-y-2">
-                          <p className="text-sm text-gray-700">Условия встречного агента</p>
-                          <p className="text-sm text-gray-900">
-                            Готов делиться: {property.partnerCommissionReady || "Не указано"}
+                          <p className="text-sm text-gray-700">
+                            Условия встречного агента
                           </p>
-                          {property.partnerCommissionValue && property.partnerCommissionType ? (
-                            <p className="text-sm text-gray-900">
-                              Размер и тип: {`${property.partnerCommissionValue} (${property.partnerCommissionType})`}
-                            </p>
-                          ) : (
-                            <p className="text-sm text-gray-900">
-                              Условия деления комиссии не указаны
-                            </p>
-                          )}
+                          <p className="text-sm text-gray-900">
+                            Готов делиться:{" "}
+                            {property.partnerCommissionReady || "Не указано"}
+                          </p>
+                          <p className="text-sm text-gray-900">
+                            Размер в рублях: {rub.format(60000)} ₽
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -1048,6 +1224,31 @@ export function SellersPropertiesView({
                       <h4 className="text-sm text-gray-700">
                         Вы предлагаете распределение комиссии
                       </h4>
+
+                      <div className="space-y-2">
+                        <Label>Общая комиссия</Label>
+                        <Input
+                          inputMode="numeric"
+                          value={proposalModalState.totalCommissionInput}
+                          onChange={(e) =>
+                            setProposalModalState((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    totalCommissionInput:
+                                      e.target.value.replace(/[^0-9]/g, ""),
+                                  }
+                                : prev,
+                            )
+                          }
+                          placeholder="90000"
+                        />
+                        <p className="text-xs text-gray-500">
+                          Рассчитываем автоматически на основании данных из
+                          карточек, но вы можете внести изменения.
+                        </p>
+                      </div>
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div className="space-y-2">
                           <Label>Ваша доля, %</Label>
@@ -1069,13 +1270,19 @@ export function SellersPropertiesView({
                             placeholder="0-100"
                           />
                           {myShareRaw !== "" && !isMyShareValid && (
-                            <p className="text-xs text-red-600">Укажите значение от 0 до 100</p>
+                            <p className="text-xs text-red-600">
+                              Укажите значение от 0 до 100
+                            </p>
                           )}
                         </div>
                         <div className="space-y-2">
                           <Label>Доля встречного агента, %</Label>
                           <Input
-                            value={partnerShareValue === null ? "—" : `${partnerShareValue}`}
+                            value={
+                              partnerShareValue === null
+                                ? "—"
+                                : `${partnerShareValue}`
+                            }
                             readOnly
                           />
                         </div>
@@ -1087,7 +1294,9 @@ export function SellersPropertiesView({
                           value={proposalModalState.message}
                           onChange={(e) =>
                             setProposalModalState((prev) =>
-                              prev ? { ...prev, message: e.target.value } : prev,
+                              prev
+                                ? { ...prev, message: e.target.value }
+                                : prev,
                             )
                           }
                           className="min-h-[90px]"
@@ -1095,13 +1304,38 @@ export function SellersPropertiesView({
                       </div>
 
                       <div className="rounded-md bg-[#f5f9ff] border border-[#dce9ff] p-3">
-                        <p className="text-sm text-[#2d5ea8]">
-                          Вы предлагаете распределить комиссию следующим образом:
-                          <br />
-                          Вы — {isMyShareValid ? myShareValue : "—"}%
-                          <br />
-                          Встречный агент — {partnerShareValue === null ? "—" : partnerShareValue}%
-                        </p>
+                        {(() => {
+                          const total = int(
+                            proposalModalState.totalCommissionInput,
+                          );
+                          const myP = isMyShareValid ? myShareValue : NaN;
+                          const myRub = Number.isNaN(myP)
+                            ? null
+                            : Math.round((total * myP) / 100);
+                          const partnerRub =
+                            myRub === null ? null : total - myRub;
+
+                          return (
+                            <p className="text-sm text-[#2d5ea8]">
+                              Вы предлагаете распределить комиссию следующим
+                              образом:
+                              <br />
+                              Вы — {Number.isNaN(myP) ? "—" : myP}%
+                              {myRub === null
+                                ? ""
+                                : ` (${rub.format(myRub)} ₽)`}
+                              <br />
+                              Встречный агент —{" "}
+                              {partnerShareValue === null
+                                ? "—"
+                                : partnerShareValue}
+                              %
+                              {partnerRub === null
+                                ? ""
+                                : ` (${rub.format(partnerRub)} ₽)`}
+                            </p>
+                          );
+                        })()}
                       </div>
                     </div>
                   </>
@@ -1111,7 +1345,10 @@ export function SellersPropertiesView({
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setProposalModalState(null)}>
+            <Button
+              variant="outline"
+              onClick={() => setProposalModalState(null)}
+            >
               Отмена
             </Button>
             <Button
