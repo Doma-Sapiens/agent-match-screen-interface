@@ -911,13 +911,13 @@ export function TasksViewV3({
           </Select>
 
           <Button
-            className="bg-[#7B61FF] hover:bg-[#6B52F0] text-white h-[32px] px-3 rounded-md shadow-none"
+            className="bg-[#7B61FF] hover:bg-[#6B52F0] text-white h-[36px] px-4 rounded-lg shadow-sm border border-[#6B52F0]"
             onClick={() => {
               setAiAssistantDraft(aiAssistantSettings);
               setShowAIAssistantModal(true);
             }}
           >
-            <Wand2 className="w-4 h-4 mr-2" />
+            <Wand2 className="w-4 h-4 mr-2 text-white" />
             <span className="whitespace-nowrap">ИИ-ассистент</span>
           </Button>
 
