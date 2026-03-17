@@ -27,7 +27,7 @@ import {
   CircleDollarSign,
   FileCheck,
   TrendingUp,
-  Sparkles,
+  Wand2,
 } from "lucide-react";
 import { TaskDetailModal } from "./TaskDetailModal";
 import { NotificationsSettingsModal } from "./NotificationsSettingsModal";
@@ -50,7 +50,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
@@ -912,14 +911,14 @@ export function TasksViewV3({
           </Select>
 
           <Button
-            className="bg-purple-600 hover:bg-purple-700 text-white h-[36px] px-3"
+            className="bg-[#7B61FF] hover:bg-[#6B52F0] text-white h-[32px] px-3 rounded-md shadow-none"
             onClick={() => {
               setAiAssistantDraft(aiAssistantSettings);
               setShowAIAssistantModal(true);
             }}
           >
-            <Sparkles className="w-4 h-4 mr-2" />
-            ИИ-ассистент
+            <Wand2 className="w-4 h-4 mr-2" />
+            <span className="whitespace-nowrap">ИИ-ассистент</span>
           </Button>
 
           <div className="bg-[#fe3c3b] box-border content-stretch flex gap-[8px] items-center justify-center px-[16px] py-[4px] relative rounded-[20px] shrink-0">
@@ -1688,8 +1687,7 @@ export function TasksViewV3({
           <DialogHeader>
             <DialogTitle>ИИ-ассистент</DialogTitle>
             <DialogDescription>
-              Управление поведением ИИ‑агента в МЛС Терминале. Настройки
-              применяются только в рамках прототипа.
+              Управление поведением ИИ‑агента в МЛС Терминале.
             </DialogDescription>
           </DialogHeader>
 
@@ -1711,7 +1709,7 @@ export function TasksViewV3({
                       ИИ агент может начинать диалог по парам
                     </Label>
                     <div className="text-sm text-gray-600">
-                      Ограничение: не более 3 обсуждений в сутки.
+                      Ограничение не более 3 обсуждений в сутки.
                     </div>
                   </div>
                 </div>
@@ -1724,14 +1722,11 @@ export function TasksViewV3({
                     </Label>
 
                     <div className="flex items-center gap-3">
-                      <div className="text-sm text-gray-700 shrink-0">
-                        Через (часов)
-                      </div>
+                      <div className="text-sm text-gray-700 shrink-0">Через</div>
                       <Input
                         inputMode="numeric"
                         maxLength={2}
                         value={aiAssistantDraft.autoReplyAfterHours}
-                        disabled={aiAssistantDraft.mode !== "reply"}
                         onChange={(e) => {
                           const v = e.target.value.replace(/[^0-9]/g, "");
                           setAiAssistantDraft((prev) => ({
@@ -1742,10 +1737,7 @@ export function TasksViewV3({
                         className="w-[90px]"
                         placeholder="12"
                       />
-                    </div>
-
-                    <div className="text-xs text-gray-500">
-                      Значение: 0–99. Поле активно только в этом режиме.
+                      <div className="text-sm text-gray-700 shrink-0">часов</div>
                     </div>
                   </div>
                 </div>
@@ -1753,7 +1745,7 @@ export function TasksViewV3({
             </div>
           </div>
 
-          <DialogFooter>
+          <div className="flex justify-end gap-2 pt-2">
             <Button
               variant="ghost"
               onClick={() => {
@@ -1764,7 +1756,7 @@ export function TasksViewV3({
               Отмена
             </Button>
             <Button
-              className="bg-purple-600 hover:bg-purple-700 text-white"
+              className="bg-[#7B61FF] hover:bg-[#6B52F0] text-white"
               onClick={() => {
                 const next = {
                   mode: aiAssistantDraft.mode,
@@ -1779,7 +1771,7 @@ export function TasksViewV3({
             >
               Сохранить
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
