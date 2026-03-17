@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import svgPaths from "../imports/svg-8hi1w0fiur";
 import imgEllipse68 from "figma:asset/191067899860343e7ef97fcc6506490eb4fba582.png";
 import { Button } from "./ui/button";
@@ -27,6 +27,7 @@ import {
   CircleDollarSign,
   FileCheck,
   TrendingUp,
+  Sparkles,
 } from "lucide-react";
 import { TaskDetailModal } from "./TaskDetailModal";
 import { NotificationsSettingsModal } from "./NotificationsSettingsModal";
@@ -45,8 +46,16 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { Badge } from "./ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 import { Label } from "./ui/label";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 interface TasksViewV3Props {
@@ -274,6 +283,52 @@ export function TasksViewV3({
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+
+  const AI_ASSISTANT_SETTINGS_KEY = "agent-match.aiAssistantSettings.v1";
+
+  type AiAssistantMode = "start" | "reply";
+  type AiAssistantSettings = {
+    mode: AiAssistantMode;
+    autoReplyAfterHours: string; // 0..99, string for input
+  };
+
+  const loadAiAssistantSettings = (): AiAssistantSettings => {
+    try {
+      const raw = localStorage.getItem(AI_ASSISTANT_SETTINGS_KEY);
+      if (!raw) {
+        return { mode: "start", autoReplyAfterHours: "" };
+      }
+      const parsed = JSON.parse(raw) as Partial<AiAssistantSettings>;
+      const mode: AiAssistantMode =
+        parsed.mode === "reply" ? "reply" : "start";
+      const hours = String(parsed.autoReplyAfterHours ?? "").replace(
+        /[^0-9]/g,
+        "",
+      );
+      return { mode, autoReplyAfterHours: hours.slice(0, 2) };
+    } catch {
+      return { mode: "start", autoReplyAfterHours: "" };
+    }
+  };
+
+  const saveAiAssistantSettings = (s: AiAssistantSettings) => {
+    localStorage.setItem(AI_ASSISTANT_SETTINGS_KEY, JSON.stringify(s));
+  };
+
+  const [showAIAssistantModal, setShowAIAssistantModal] = useState(false);
+  const [aiAssistantSettings, setAiAssistantSettings] =
+    useState<AiAssistantSettings>({ mode: "start", autoReplyAfterHours: "" });
+  const [aiAssistantDraft, setAiAssistantDraft] = useState<AiAssistantSettings>(
+    { mode: "start", autoReplyAfterHours: "" },
+  );
+
+  useEffect(() => {
+    // Load saved settings on first render
+    const loaded = loadAiAssistantSettings();
+    setAiAssistantSettings(loaded);
+    setAiAssistantDraft(loaded);
+  }, []);
+
   const [mlsDirection, setMlsDirection] = useState<"incoming" | "outgoing">(
     "incoming",
   );
@@ -855,6 +910,17 @@ export function TasksViewV3({
               <SelectItem value="commission-received">КВ получена</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button
+            className="bg-purple-600 hover:bg-purple-700 text-white h-[36px] px-3"
+            onClick={() => {
+              setAiAssistantDraft(aiAssistantSettings);
+              setShowAIAssistantModal(true);
+            }}
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            ИИ-ассистент
+          </Button>
 
           <div className="bg-[#fe3c3b] box-border content-stretch flex gap-[8px] items-center justify-center px-[16px] py-[4px] relative rounded-[20px] shrink-0">
             <IconStreaming />
@@ -1607,6 +1673,115 @@ export function TasksViewV3({
           </div>
         </div>
       </div>
+
+      {/* Модалка: Настройки ИИ-ассистента */}
+      <Dialog
+        open={showAIAssistantModal}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowAIAssistantModal(false);
+            setAiAssistantDraft(aiAssistantSettings);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[560px]">
+          <DialogHeader>
+            <DialogTitle>ИИ-ассистент</DialogTitle>
+            <DialogDescription>
+              Управление поведением ИИ‑агента в МЛС Терминале. Настройки
+              применяются только в рамках прототипа.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <Label>Режим</Label>
+              <RadioGroup
+                value={aiAssistantDraft.mode}
+                onValueChange={(value) => {
+                  const mode = value === "reply" ? "reply" : "start";
+                  setAiAssistantDraft((prev) => ({ ...prev, mode }));
+                }}
+                className="gap-4"
+              >
+                <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3">
+                  <RadioGroupItem value="start" id="ai-mode-start" />
+                  <div className="space-y-1">
+                    <Label htmlFor="ai-mode-start" className="font-medium">
+                      ИИ агент может начинать диалог по парам
+                    </Label>
+                    <div className="text-sm text-gray-600">
+                      Ограничение: не более 3 обсуждений в сутки.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3">
+                  <RadioGroupItem value="reply" id="ai-mode-reply" />
+                  <div className="space-y-2 w-full">
+                    <Label htmlFor="ai-mode-reply" className="font-medium">
+                      ИИ агент может отвечать за меня, если я не ответил
+                    </Label>
+
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm text-gray-700 shrink-0">
+                        Через (часов)
+                      </div>
+                      <Input
+                        inputMode="numeric"
+                        maxLength={2}
+                        value={aiAssistantDraft.autoReplyAfterHours}
+                        disabled={aiAssistantDraft.mode !== "reply"}
+                        onChange={(e) => {
+                          const v = e.target.value.replace(/[^0-9]/g, "");
+                          setAiAssistantDraft((prev) => ({
+                            ...prev,
+                            autoReplyAfterHours: v.slice(0, 2),
+                          }));
+                        }}
+                        className="w-[90px]"
+                        placeholder="12"
+                      />
+                    </div>
+
+                    <div className="text-xs text-gray-500">
+                      Значение: 0–99. Поле активно только в этом режиме.
+                    </div>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setShowAIAssistantModal(false);
+                setAiAssistantDraft(aiAssistantSettings);
+              }}
+            >
+              Отмена
+            </Button>
+            <Button
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              onClick={() => {
+                const next = {
+                  mode: aiAssistantDraft.mode,
+                  autoReplyAfterHours: aiAssistantDraft.autoReplyAfterHours
+                    .replace(/[^0-9]/g, "")
+                    .slice(0, 2),
+                };
+                setAiAssistantSettings(next);
+                saveAiAssistantSettings(next);
+                setShowAIAssistantModal(false);
+              }}
+            >
+              Сохранить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Модалка: Предложить деление комиссии */}
       <Dialog
