@@ -283,11 +283,11 @@ export function TasksViewV3({
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
 
-  const AI_ASSISTANT_SETTINGS_KEY = "agent-match.aiAssistantSettings.v1";
+  const AI_ASSISTANT_SETTINGS_KEY = "agent-match.aiAssistantSettings.v2";
 
-  type AiAssistantMode = "start" | "reply";
   type AiAssistantSettings = {
-    mode: AiAssistantMode;
+    startDialogsEnabled: boolean;
+    autoReplyEnabled: boolean;
     autoReplyAfterHours: string; // 0..99, string for input
   };
 
@@ -295,18 +295,27 @@ export function TasksViewV3({
     try {
       const raw = localStorage.getItem(AI_ASSISTANT_SETTINGS_KEY);
       if (!raw) {
-        return { mode: "start", autoReplyAfterHours: "" };
+        return {
+          startDialogsEnabled: false,
+          autoReplyEnabled: false,
+          autoReplyAfterHours: "",
+        };
       }
       const parsed = JSON.parse(raw) as Partial<AiAssistantSettings>;
-      const mode: AiAssistantMode =
-        parsed.mode === "reply" ? "reply" : "start";
-      const hours = String(parsed.autoReplyAfterHours ?? "").replace(
-        /[^0-9]/g,
-        "",
-      );
-      return { mode, autoReplyAfterHours: hours.slice(0, 2) };
+      const startDialogsEnabled = Boolean(parsed.startDialogsEnabled);
+      const autoReplyEnabled = Boolean(parsed.autoReplyEnabled);
+      const hours = String(parsed.autoReplyAfterHours ?? "").replace(/[^0-9]/g, "");
+      return {
+        startDialogsEnabled,
+        autoReplyEnabled,
+        autoReplyAfterHours: hours.slice(0, 2),
+      };
     } catch {
-      return { mode: "start", autoReplyAfterHours: "" };
+      return {
+        startDialogsEnabled: false,
+        autoReplyEnabled: false,
+        autoReplyAfterHours: "",
+      };
     }
   };
 
@@ -316,9 +325,9 @@ export function TasksViewV3({
 
   const [showAIAssistantModal, setShowAIAssistantModal] = useState(false);
   const [aiAssistantSettings, setAiAssistantSettings] =
-    useState<AiAssistantSettings>({ mode: "start", autoReplyAfterHours: "" });
+    useState<AiAssistantSettings>({ startDialogsEnabled: false, autoReplyEnabled: false, autoReplyAfterHours: "" });
   const [aiAssistantDraft, setAiAssistantDraft] = useState<AiAssistantSettings>(
-    { mode: "start", autoReplyAfterHours: "" },
+    { startDialogsEnabled: false, autoReplyEnabled: false, autoReplyAfterHours: "" },
   );
 
   useEffect(() => {
@@ -911,7 +920,8 @@ export function TasksViewV3({
           </Select>
 
           <Button
-            className="bg-[#7B61FF] hover:bg-[#6B52F0] text-white h-[36px] px-4 rounded-lg shadow-sm border border-[#6B52F0]"
+            style={{ backgroundColor: "#7B61FF", color: "#fff" }}
+            className="hover:bg-[#6B52F0] h-[36px] px-4 rounded-lg shadow-sm border border-[#6B52F0]"
             onClick={() => {
               setAiAssistantDraft(aiAssistantSettings);
               setShowAIAssistantModal(true);
@@ -1697,7 +1707,7 @@ export function TasksViewV3({
               <div className="space-y-3">
                 <div
                   className={`flex items-start justify-between gap-4 rounded-lg border p-3 transition-colors ${
-                    aiAssistantDraft.mode === "start"
+                    aiAssistantDraft.startDialogsEnabled
                       ? "border-[#7B61FF] bg-[#F3F0FF]"
                       : "border-gray-200 bg-white"
                   }`}
@@ -1712,11 +1722,9 @@ export function TasksViewV3({
                   </div>
 
                   <Switch
-                    checked={aiAssistantDraft.mode === "start"}
+                    checked={aiAssistantDraft.startDialogsEnabled}
                     onCheckedChange={(checked) => {
-                      if (checked) {
-                        setAiAssistantDraft((prev) => ({ ...prev, mode: "start" }));
-                      }
+                      setAiAssistantDraft((prev) => ({ ...prev, startDialogsEnabled: checked }));
                     }}
                     className="data-[state=checked]:bg-[#7B61FF]"
                   />
@@ -1724,7 +1732,7 @@ export function TasksViewV3({
 
                 <div
                   className={`flex items-start justify-between gap-4 rounded-lg border p-3 transition-colors ${
-                    aiAssistantDraft.mode === "reply"
+                    aiAssistantDraft.autoReplyEnabled
                       ? "border-[#7B61FF] bg-[#F3F0FF]"
                       : "border-gray-200 bg-white"
                   }`}
@@ -1755,11 +1763,9 @@ export function TasksViewV3({
                   </div>
 
                   <Switch
-                    checked={aiAssistantDraft.mode === "reply"}
+                    checked={aiAssistantDraft.autoReplyEnabled}
                     onCheckedChange={(checked) => {
-                      if (checked) {
-                        setAiAssistantDraft((prev) => ({ ...prev, mode: "reply" }));
-                      }
+                      setAiAssistantDraft((prev) => ({ ...prev, autoReplyEnabled: checked }));
                     }}
                     className="data-[state=checked]:bg-[#7B61FF]"
                   />
@@ -1782,7 +1788,8 @@ export function TasksViewV3({
               className="bg-[#7B61FF] hover:bg-[#6B52F0] text-white"
               onClick={() => {
                 const next = {
-                  mode: aiAssistantDraft.mode,
+                  startDialogsEnabled: aiAssistantDraft.startDialogsEnabled,
+                  autoReplyEnabled: aiAssistantDraft.autoReplyEnabled,
                   autoReplyAfterHours: aiAssistantDraft.autoReplyAfterHours
                     .replace(/[^0-9]/g, "")
                     .slice(0, 2),
