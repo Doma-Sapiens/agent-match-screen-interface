@@ -54,7 +54,6 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { Label } from "./ui/label";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 interface TasksViewV3Props {
@@ -911,7 +910,7 @@ export function TasksViewV3({
           </Select>
 
           <Button
-            className="bg-[#7B61FF] hover:bg-[#6B52F0] text-white h-[36px] px-4 rounded-lg shadow-sm border border-[#6B52F0]"
+            className="!bg-[#7B61FF] hover:!bg-[#6B52F0] !text-white h-[36px] px-4 rounded-lg shadow-sm border border-[#6B52F0]"
             onClick={() => {
               setAiAssistantDraft(aiAssistantSettings);
               setShowAIAssistantModal(true);
@@ -1694,32 +1693,65 @@ export function TasksViewV3({
           <div className="space-y-4">
             <div className="space-y-3">
               <Label>Режим</Label>
-              <RadioGroup
-                value={aiAssistantDraft.mode}
-                onValueChange={(value) => {
-                  const mode = value === "reply" ? "reply" : "start";
-                  setAiAssistantDraft((prev) => ({ ...prev, mode }));
-                }}
-                className="gap-4"
-              >
-                <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3">
-                  <RadioGroupItem value="start" id="ai-mode-start" />
+              <div className="space-y-3">
+                <div
+                  className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                    aiAssistantDraft.mode === "start"
+                      ? "border-[#7B61FF] bg-[#F3F0FF]"
+                      : "border-gray-200 bg-white hover:bg-gray-50"
+                  }`}
+                  onClick={() =>
+                    setAiAssistantDraft((prev) => ({ ...prev, mode: "start" }))
+                  }
+                >
+                  <div
+                    className={`mt-1 size-5 rounded-full border-2 flex items-center justify-center ${
+                      aiAssistantDraft.mode === "start"
+                        ? "border-[#7B61FF]"
+                        : "border-gray-300"
+                    }`}
+                  >
+                    {aiAssistantDraft.mode === "start" && (
+                      <div className="size-2.5 rounded-full bg-[#7B61FF]" />
+                    )}
+                  </div>
+
                   <div className="space-y-1">
-                    <Label htmlFor="ai-mode-start" className="font-medium">
+                    <div className="font-medium text-gray-900">
                       ИИ агент может начинать диалог по парам
-                    </Label>
+                    </div>
                     <div className="text-sm text-gray-600">
                       Ограничение не более 3 обсуждений в сутки.
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3">
-                  <RadioGroupItem value="reply" id="ai-mode-reply" />
+                <div
+                  className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                    aiAssistantDraft.mode === "reply"
+                      ? "border-[#7B61FF] bg-[#F3F0FF]"
+                      : "border-gray-200 bg-white hover:bg-gray-50"
+                  }`}
+                  onClick={() =>
+                    setAiAssistantDraft((prev) => ({ ...prev, mode: "reply" }))
+                  }
+                >
+                  <div
+                    className={`mt-1 size-5 rounded-full border-2 flex items-center justify-center ${
+                      aiAssistantDraft.mode === "reply"
+                        ? "border-[#7B61FF]"
+                        : "border-gray-300"
+                    }`}
+                  >
+                    {aiAssistantDraft.mode === "reply" && (
+                      <div className="size-2.5 rounded-full bg-[#7B61FF]" />
+                    )}
+                  </div>
+
                   <div className="space-y-2 w-full">
-                    <Label htmlFor="ai-mode-reply" className="font-medium">
+                    <div className="font-medium text-gray-900">
                       ИИ агент может отвечать за меня, если я не ответил
-                    </Label>
+                    </div>
 
                     <div className="flex items-center gap-3">
                       <div className="text-sm text-gray-700 shrink-0">Через</div>
@@ -1741,7 +1773,7 @@ export function TasksViewV3({
                     </div>
                   </div>
                 </div>
-              </RadioGroup>
+              </div>
             </div>
           </div>
 
