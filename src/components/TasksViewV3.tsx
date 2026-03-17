@@ -39,6 +39,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Input } from "./ui/input";
+import { Switch } from "./ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -910,7 +911,7 @@ export function TasksViewV3({
           </Select>
 
           <Button
-            className="!bg-[#7B61FF] hover:!bg-[#6B52F0] !text-white h-[36px] px-4 rounded-lg shadow-sm border border-[#6B52F0]"
+            className="bg-[#7B61FF] hover:bg-[#6B52F0] text-white h-[36px] px-4 rounded-lg shadow-sm border border-[#6B52F0]"
             onClick={() => {
               setAiAssistantDraft(aiAssistantSettings);
               setShowAIAssistantModal(true);
@@ -1695,27 +1696,12 @@ export function TasksViewV3({
               <Label>Режим</Label>
               <div className="space-y-3">
                 <div
-                  className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                  className={`flex items-start justify-between gap-4 rounded-lg border p-3 transition-colors ${
                     aiAssistantDraft.mode === "start"
                       ? "border-[#7B61FF] bg-[#F3F0FF]"
-                      : "border-gray-200 bg-white hover:bg-gray-50"
+                      : "border-gray-200 bg-white"
                   }`}
-                  onClick={() =>
-                    setAiAssistantDraft((prev) => ({ ...prev, mode: "start" }))
-                  }
                 >
-                  <div
-                    className={`mt-1 size-5 rounded-full border-2 flex items-center justify-center ${
-                      aiAssistantDraft.mode === "start"
-                        ? "border-[#7B61FF]"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    {aiAssistantDraft.mode === "start" && (
-                      <div className="size-2.5 rounded-full bg-[#7B61FF]" />
-                    )}
-                  </div>
-
                   <div className="space-y-1">
                     <div className="font-medium text-gray-900">
                       ИИ агент может начинать диалог по парам
@@ -1724,30 +1710,25 @@ export function TasksViewV3({
                       Ограничение не более 3 обсуждений в сутки.
                     </div>
                   </div>
+
+                  <Switch
+                    checked={aiAssistantDraft.mode === "start"}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setAiAssistantDraft((prev) => ({ ...prev, mode: "start" }));
+                      }
+                    }}
+                    className="data-[state=checked]:bg-[#7B61FF]"
+                  />
                 </div>
 
                 <div
-                  className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                  className={`flex items-start justify-between gap-4 rounded-lg border p-3 transition-colors ${
                     aiAssistantDraft.mode === "reply"
                       ? "border-[#7B61FF] bg-[#F3F0FF]"
-                      : "border-gray-200 bg-white hover:bg-gray-50"
+                      : "border-gray-200 bg-white"
                   }`}
-                  onClick={() =>
-                    setAiAssistantDraft((prev) => ({ ...prev, mode: "reply" }))
-                  }
                 >
-                  <div
-                    className={`mt-1 size-5 rounded-full border-2 flex items-center justify-center ${
-                      aiAssistantDraft.mode === "reply"
-                        ? "border-[#7B61FF]"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    {aiAssistantDraft.mode === "reply" && (
-                      <div className="size-2.5 rounded-full bg-[#7B61FF]" />
-                    )}
-                  </div>
-
                   <div className="space-y-2 w-full">
                     <div className="font-medium text-gray-900">
                       ИИ агент может отвечать за меня, если я не ответил
@@ -1772,6 +1753,16 @@ export function TasksViewV3({
                       <div className="text-sm text-gray-700 shrink-0">часов</div>
                     </div>
                   </div>
+
+                  <Switch
+                    checked={aiAssistantDraft.mode === "reply"}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setAiAssistantDraft((prev) => ({ ...prev, mode: "reply" }));
+                      }
+                    }}
+                    className="data-[state=checked]:bg-[#7B61FF]"
+                  />
                 </div>
               </div>
             </div>
